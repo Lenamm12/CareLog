@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'product.dart'; // Assuming you have a product.dart file
-import 'routine.dart'; // Assuming you have a routine.dart file
+import 'product.dart';
+import 'routine.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddRoutineScreen extends StatefulWidget {
   const AddRoutineScreen({super.key});
@@ -13,7 +14,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String _routineName = '';
-  final List<Product> _selectedProducts = []; // Placeholder for selected products
+  final List<Product> _selectedProducts =
+      []; // Placeholder for selected products
   String _frequency = 'Daily'; // Default frequency
   String _notes = '';
 
@@ -28,6 +30,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       openingDate: DateTime.now(),
       expiryPeriod: '12 months',
       notes: '',
+      expiryDate: DateTime.now().add(Duration(days: 365)),
+      type: 'product',
     ),
     Product(
       name: 'Serum',
@@ -38,27 +42,40 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       openingDate: DateTime.now(),
       expiryPeriod: '6 months',
       notes: '',
+      expiryDate: DateTime.now().add(Duration(days: 180)),
+      type: 'product',
     ),
     // Add more dummy products
   ];
 
-  final List<String> _frequencies = [
-    'Daily',
-    'Weekly',
-    'Monthly',
-    'Custom',
-  ];
+  final List<String> _frequencies = ['Daily', 'Weekly', 'Monthly', 'Custom'];
 
-  void _saveRoutine() {
+  void _saveRoutine() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Here you would typically save the routine data
-      // For now, just print the data
-      print('Routine Name: $_routineName');
-      print('Selected Products: ${_selectedProducts.map((p) => p.name).toList()}');
-      print('Frequency: $_frequency');
-      print('Notes: $_notes');
+      final newRoutine = Routine(
+        name: _routineName,
+        products:
+            _selectedProducts, // Assuming _selectedProducts contains Product objects
+        frequency: _frequency,
+        notes: _notes,
+      );
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('routines')
+            .doc(newRoutine.id)
+            .set(newRoutine.toMap());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Routine saved successfully!')),
+        );
+        Navigator.pop(context); // Go back after saving
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving routine: $e')));
+      }
 
       // TODO: Implement saving the routine to your data storage
       // Navigator.pop(context); // Go back after saving
@@ -99,12 +116,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(labelText: 'Frequency'),
                 value: _frequency,
-                items: _frequencies.map((String frequency) {
-                  return DropdownMenuItem<String>(
-                    value: frequency,
-                    child: Text(frequency),
-                  );
-                }).toList(),
+                items:
+                    _frequencies.map((String frequency) {
+                      return DropdownMenuItem<String>(
+                        value: frequency,
+                        child: Text(frequency),
+                      );
+                    }).toList(),
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {

@@ -1,24 +1,34 @@
+import 'package:uuid/uuid.dart';
+
 class Product {
+  final String id; // Unique ID for each product
   String name;
   String brand;
+  String type;
   String benefit;
   DateTime purchaseDate;
   double price;
   DateTime openingDate;
   String expiryPeriod;
   DateTime expiryDate;
+  String? imagePath; // Nullable field for image path
   String notes;
 
   Product({
+    String? id, // Make id optional in constructor
     required this.name,
     required this.brand,
+    required this.type,
     required this.benefit,
     required this.purchaseDate,
     required this.price,
     required this.openingDate,
-    required this.expiryPeriod,
-    required this.notes,
-  }) : expiryDate = calculateExpiryDate(openingDate, expiryPeriod);
+    required this.expiryPeriod, // Keep this as it is used for calculation
+    required this.notes, required DateTime expiryDate,
+ this.imagePath, // Make imagePath optional in constructor
+  }) :
+ id = id ?? const Uuid().v4(), // Generate ID if not provided
+        expiryDate = calculateExpiryDate(openingDate, expiryPeriod);
 
   static DateTime calculateExpiryDate(
     DateTime openingDate,

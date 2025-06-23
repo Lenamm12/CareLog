@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // You might need to add the intl dependency to your pubspec.yaml
+import 'package:intl/intl.dart';
 import 'product.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -49,6 +50,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   void _saveProduct() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -68,22 +71,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
         );
       }
 
-      // Here you would typically save the product data
-      // For now, just print the data
-      print('Name: $_name');
-      print('Brand: $_brand');
-      print('Benefit: $_benefit');
-      print('Purchase Date: ${_purchaseDate.toIso8601String()}');
-      print('Price: $_price');
-      print('Opening Date: ${_openingDate.toIso8601String()}');
-      print('Expiry Period: $_expiryPeriod');
-      if (_expiryPeriod == 'Custom') {
-        print('Custom Expiry: $_customExpiryValue $_customExpiryUnit');
-        print('Notes: $_notes');
+      final newProduct = Product(
+        name: _name,
+        brand: _brand,
+        benefit: _benefit,
+        purchaseDate: _purchaseDate,
+        price: double.tryParse(_price) ?? 0.0,
+        openingDate: _openingDate,
+        expiryPeriod: _expiryPeriod,
+        expiryDate: calculatedExpiryDate,
+        notes: _notes,
+        type: '',
+      );
 
-        // TODO: Implement saving the product to your data storage
-        // Navigator.pop(context); // Go back after saving
-      }
+      _firestore.collection('products').doc(newProduct.id).set({
+        'name': newProduct.name,
+        'brand': newProduct.brand,
+        'benefit': newProduct.benefit,
+        'purchaseDate': Timestamp.fromDate(newProduct.purchaseDate),
+        'price': newProduct.price,
+        'openingDate': Timestamp.fromDate(newProduct.openingDate),
+        'expiryDate': Timestamp.fromDate(newProduct.expiryDate),
+        'notes': newProduct.notes,
+        'type': newProduct.type,
+      });
     }
   }
 

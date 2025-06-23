@@ -23,16 +23,39 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="myapp">
+  <meta name="apple-mobile-web-app-title" content="carelog">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>myapp</title>
+  <title>carelog</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+
+
+  <script type="module">
+    import { initializeApp } from "/firebase/app";
+    import { getAnalytics } from "/firebase/analytics";
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUhCWKuALFTDIOFucDrlnAHp13-wafyiY",
+      authDomain: "carelog-c37f3.firebaseapp.com",
+      projectId: "carelog-c37f3",
+      storageBucket: "carelog-c37f3.firebasestorage.app",
+      messagingSenderId: "355454719687",
+      appId: "1:355454719687:web:c21019baa4b113e25310e2",
+      measurementId: "G-CJX3BH61KD"
+    };
+
+    // Initialize Firebase
+    const app = await firebase.initializeApp(firebaseConfig);
+    // Initialize other Firebase products you use here, e.g., firebase.auth(), firebase.firestore()
+    const analytics = getAnalytics(app);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
+
 </body>
 </html>
