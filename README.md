@@ -1,16 +1,18 @@
-# myapp
+# CareLog
 
-A new Flutter project.
+An App to manage beauty products and track routines
 
-## Getting Started
+## Features:
+- Listing your beauty products
+- Developing routines 
+- Tracking routines with used products
+- Overview of finished routines and upcoming tasks in calendar
 
-This project is a starting point for a Flutter application.
+## WIP:
+- Warnings for expired products
+- Notifications for expired products and routines
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Possible future features:
+- Sharing routines
+- Social aspects
+- Including tools like skin checker, recommendations, etc.
