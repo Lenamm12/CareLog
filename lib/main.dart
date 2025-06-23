@@ -11,6 +11,8 @@ Future<void> main() async {
 }
 
 class CalendarScreen extends StatelessWidget {
+  const CalendarScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Calendar Screen'));
@@ -18,6 +20,8 @@ class CalendarScreen extends StatelessWidget {
 }
 
 class SelfCareTasksScreen extends StatelessWidget {
+  const SelfCareTasksScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Self-care Tasks Screen'));
@@ -35,6 +39,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 239, 128, 211),
+          primary: const Color.fromARGB(255, 239, 128, 211),
+          onPrimary: const Color.fromARGB(255, 0, 0, 0),
+          secondary: const Color.fromARGB(255, 114, 36, 94),
+          onSecondary: const Color.fromARGB(255, 255, 255, 255),
         ),
         useMaterial3: true,
       ),
@@ -44,6 +52,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -80,15 +90,17 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.calendar_today),
             label: 'Calendar',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Self-care'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Self-care'),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
       ),
     );
   }

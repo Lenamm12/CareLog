@@ -3,6 +3,8 @@ import 'product.dart'; // Assuming you have a product.dart file
 import 'routine.dart'; // Assuming you have a routine.dart file
 
 class AddRoutineScreen extends StatefulWidget {
+  const AddRoutineScreen({super.key});
+
   @override
   _AddRoutineScreenState createState() => _AddRoutineScreenState();
 }
@@ -11,7 +13,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String _routineName = '';
-  List<Product> _selectedProducts = []; // Placeholder for selected products
+  final List<Product> _selectedProducts = []; // Placeholder for selected products
   String _frequency = 'Daily'; // Default frequency
   String _notes = '';
 

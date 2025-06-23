@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "355454719687",
+    "project_id": "carelog-c37f3",
+    "storage_bucket": "carelog-c37f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355454719687:android:4a06af435d7e11b05310e2",
+        "android_client_info": {
+          "package_name": "de.lenazeise.carelog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMGVGLI_wmXp-LQnrmw-KO27HmqCqZqH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

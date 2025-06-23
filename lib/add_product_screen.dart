@@ -3,6 +3,8 @@ import 'package:intl/intl.dart'; // You might need to add the intl dependency to
 import 'product.dart';
 
 class AddProductScreen extends StatefulWidget {
+  const AddProductScreen({super.key});
+
   @override
   _AddProductScreenState createState() => _AddProductScreenState();
 }
@@ -17,8 +19,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String _price = '';
   DateTime _openingDate = DateTime.now();
   String _expiryPeriod = '6 months'; // Default value
-  int _customExpiryValue = 0;
-  String _customExpiryUnit = 'days';
+  final int _customExpiryValue = 0;
+  final String _customExpiryUnit = 'days';
   String _notes = '';
 
   final List<String> _expiryPeriods = [

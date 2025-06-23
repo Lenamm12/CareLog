@@ -9,6 +9,8 @@ class RoutinesScreen extends StatelessWidget {
     'Weekly Hair Mask',
   ];
 
+  RoutinesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,8 +34,8 @@ class RoutinesScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => AddRoutineScreen()),
           );
         },
-        child: Icon(Icons.add),
         tooltip: 'Add New Routine',
+        child: Icon(Icons.add),
       ),
     );
   }
