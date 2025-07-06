@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class Product {
@@ -24,11 +25,11 @@ class Product {
     required this.price,
     required this.openingDate,
     required this.expiryPeriod, // Keep this as it is used for calculation
-    required this.notes, required DateTime expiryDate,
- this.imagePath, // Make imagePath optional in constructor
-  }) :
- id = id ?? const Uuid().v4(), // Generate ID if not provided
-        expiryDate = calculateExpiryDate(openingDate, expiryPeriod);
+    required this.notes,
+    required DateTime expiryDate,
+    this.imagePath, // Make imagePath optional in constructor
+  }) : id = id ?? const Uuid().v4(), // Generate ID if not provided
+       expiryDate = calculateExpiryDate(openingDate, expiryPeriod);
 
   static DateTime calculateExpiryDate(
     DateTime openingDate,
@@ -70,6 +71,26 @@ class Product {
       calculatedDate.day,
     );
     return calculatedDate;
+  }
+
+  static fromFirestore(QueryDocumentSnapshot<Object?> doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Product(
+      id: doc.id, // Use the document ID as the product ID
+      name: data['name'] ?? '', // Use null-aware operator for safety
+      brand: data['brand'] ?? '',
+      type: data['type'] ?? '',
+      benefit: data['benefit'] ?? '',
+      purchaseDate:
+          (data['purchaseDate'] as Timestamp)
+              .toDate(), // Convert Timestamp to DateTime
+      price: (data['price'] ?? 0.0).toDouble(), // Ensure it's a double
+      openingDate: (data['openingDate'] as Timestamp).toDate(),
+      expiryPeriod: data['expiryPeriod'] ?? '',
+      notes: data['notes'] ?? '',
+      imagePath: data['imagePath'], // This can be null
+      expiryDate: (data['expiryDate'] as Timestamp).toDate(),
+    );
   }
 
   // You can add other methods here, e.g., for serialization/deserialization if needed.

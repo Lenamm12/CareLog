@@ -19,15 +19,6 @@ class CalendarScreen extends StatelessWidget {
   }
 }
 
-class SelfCareTasksScreen extends StatelessWidget {
-  const SelfCareTasksScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Self-care Tasks Screen'));
-  }
-}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -65,7 +56,6 @@ class _MainScreenState extends State<MainScreen> {
     ProductsScreen(),
     RoutinesScreen(),
     CalendarScreen(),
-    SelfCareTasksScreen(),
     SettingsScreen(),
   ];
 
@@ -81,7 +71,10 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.spa), label: 'Products'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shelves),
+            label: 'Products',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list_alt),
             label: 'Routines',
@@ -90,7 +83,6 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.calendar_today),
             label: 'Calendar',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Self-care'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',

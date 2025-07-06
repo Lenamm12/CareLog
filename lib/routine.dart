@@ -1,16 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'product.dart'; // Assuming your Product class is in product.dart
 import 'package:uuid/uuid.dart';
 
 class Routine {
-  final String id;
+  late final String id;
   String name;
-  List<Product> products;
+  List<Product>? products;
   String frequency;
   String notes;
 
   Routine({
+    String? id,
     required this.name,
-    required this.products,
+    this.products,
     required this.frequency,
     required this.notes,
   }) : id = const Uuid().v4();
@@ -20,9 +23,20 @@ class Routine {
       'id': id,
       'name': name,
       'products':
-          products.map((product) => product.id).toList(), // Store product IDs
+          products?.map((product) => product.id).toList(), // Store product IDs
       'frequency': frequency,
       'notes': notes,
     };
+  }
+
+  factory Routine.fromFirestore(QueryDocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Routine(
+      name: data['name'] ?? '',
+      // products will be fetched separately based on IDs
+      products: null, // Initialize products as null or an empty list
+      frequency: data['frequency'] ?? '',
+      notes: data['notes'] ?? '',
+    );
   }
 }

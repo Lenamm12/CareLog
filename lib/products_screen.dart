@@ -1,6 +1,8 @@
+import 'package:carelog/product.dart';
 import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
-import 'product.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -10,55 +12,64 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  // Dummy data for morning and evening products
-  final List<String> _morningProducts = [
-    'Cleanser (Morning)',
-    'Toner (Morning)',
-    'Serum (Morning)',
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final List<String> _eveningProducts = [
-    'Cleanser (Evening)',
-    'Retinol (Evening)',
-    'Moisturizer (Evening)',
-  ];
+  User? get currentUser => _auth.currentUser;
 
   @override
   Widget build(BuildContext context) {
+    if (currentUser == null) {
+      // Handle the case where the user is not logged in
+      return Scaffold(
+        appBar: AppBar(title: const Text('My Products')),
+        body: const Center(child: Text('Please log in to view your products.')),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Products')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Morning Products',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      appBar: AppBar(title: const Text('My Products')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream:
+            _firestore
+                .collection('users')
+                .doc(currentUser!.uid)
+                .collection('products')
+                .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final products =
+              snapshot.data!.docs.map((doc) {
+                return Product.fromFirestore(doc);
+              }).toList();
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Image(image: products[index].imagePath),
+                        title: Text(products[index].name),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _morningProducts.length,
-                itemBuilder: (context, index) {
-                  return ListTile(title: Text(_morningProducts[index]));
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Evening Products',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _eveningProducts.length,
-                itemBuilder: (context, index) {
-                  return ListTile(title: Text(_eveningProducts[index]));
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
