@@ -25,7 +25,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -33,6 +34,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       await _auth.signInWithCredential(credential);
+
+      print("Signed in with Google!");
     } catch (e) {
       print(e); // Handle errors appropriately
     }
@@ -41,16 +44,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
+      appBar: AppBar(title: Text('Settings')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Settings Screen'),
             SizedBox(height: 20), // Add some spacing
-            ElevatedButton(onPressed: _signInWithGoogle, child: Text('Sign in with Google')),
+            ElevatedButton(
+              onPressed: _signInWithGoogle,
+              child: Text('Sign in with Google'),
+            ),
           ],
         ),
       ),

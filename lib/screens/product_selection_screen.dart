@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'product.dart'; // Assuming your Product class is in product.dart
+import '../models/product.dart'; // Assuming your Product class is in product.dart
 
 class ProductSelectionScreen extends StatefulWidget {
   final List<Product> initialSelectedProducts;

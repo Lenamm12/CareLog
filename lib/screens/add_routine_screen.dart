@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'routine.dart';
+import '../models/routine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'product.dart'; // Import the Product class
+import '../models/product.dart'; // Import the Product class
 import 'product_selection_screen.dart'; // Import the new screen
 
 class AddRoutineScreen extends StatefulWidget {

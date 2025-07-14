@@ -1,4 +1,4 @@
-import 'package:carelog/product.dart';
+import 'package:carelog/models/product.dart';
 import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

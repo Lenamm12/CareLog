@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'product.dart';
+import '../models/product.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -132,6 +132,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   _benefit = value!;
                 },
               ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                onSaved: (value) {
+                  _price = value!;
+                },
+              ),
               ListTile(
                 title: Text(
                   'Purchase Date: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
@@ -144,13 +151,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       });
                     }),
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                onSaved: (value) {
-                  _price = value!;
-                },
-              ),
+
               ListTile(
                 title: Text(
                   'Opening Date: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',

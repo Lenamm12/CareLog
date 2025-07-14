@@ -1,4 +1,4 @@
-import 'package:carelog/routine.dart';
+import 'package:carelog/models/routine.dart';
 import 'package:flutter/material.dart';
 import 'add_routine_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -1,22 +1,14 @@
+import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'products_screen.dart';
-import 'routines_screen.dart';
-import 'settings_screen.dart';
+import 'screens/products_screen.dart';
+import 'screens/routines_screen.dart';
+import 'screens/settings_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
-}
-
-class CalendarScreen extends StatelessWidget {
-  const CalendarScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Calendar Screen'));
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -71,10 +63,7 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shelves),
-            label: 'Products',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.shelves), label: 'Products'),
           BottomNavigationBarItem(
             icon: Icon(Icons.list_alt),
             label: 'Routines',
