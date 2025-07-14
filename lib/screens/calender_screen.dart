@@ -26,7 +26,7 @@ class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  _CalendarScreenState createState() => _CalendarScreenState();
+  State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
@@ -88,7 +88,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     // If no date is selected, show a message
     if (_selectedDay == null) {
-      return const Center(child: Text('Select a day to see upcoming routines.'));
+      return const Center(
+        child: Text('Select a day to see upcoming routines.'),
+      );
     }
 
     // ... (login and selected day checks)
@@ -112,8 +114,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
- if (snapshot.hasData && snapshot.data != null) {
-        }
+        if (snapshot.hasData && snapshot.data != null) {}
 
         // Populate _routinesByDay with fetched routines
         snapshot.data!.docs.forEach((doc) {

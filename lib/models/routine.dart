@@ -39,4 +39,19 @@ class Routine {
       notes: data['notes'] ?? '',
     );
   }
+
+  static Routine fromMap(
+    Map<String, dynamic> routineMap, {
+    required List<String> productIds,
+  }) {
+    return Routine(
+      id: routineMap['id'],
+      name: routineMap['name'] ?? '',
+      // For local storage, we only store product IDs in the Routine object.
+      // The actual Product objects will need to be fetched separately if needed.
+      products: null,
+      frequency: routineMap['frequency'] ?? '',
+      notes: routineMap['notes'] ?? '',
+    );
+  }
 }

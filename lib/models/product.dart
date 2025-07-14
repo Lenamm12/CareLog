@@ -93,5 +93,38 @@ class Product {
     );
   }
 
+  static Product fromMap(Map<String, dynamic> map) {
+    return Product(
+      id: map['id'],
+      name: map['name'],
+      brand: map['brand'],
+      type: map['type'],
+      benefit: map['benefit'],
+      purchaseDate: DateTime.fromMillisecondsSinceEpoch(map['purchaseDate']),
+      price: map['price'],
+      openingDate: DateTime.fromMillisecondsSinceEpoch(map['openingDate']),
+      expiryPeriod: map['expiryPeriod'],
+      notes: map['notes'],
+      imagePath: map['imagePath'],
+      expiryDate: DateTime.fromMillisecondsSinceEpoch(map['expiryDate']),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'brand': brand,
+      'type': type,
+      'benefit': benefit,
+      'purchaseDate': purchaseDate.millisecondsSinceEpoch,
+      'price': price,
+      'openingDate': openingDate.millisecondsSinceEpoch,
+      'expiryPeriod': expiryPeriod,
+      'notes': notes,
+      'imagePath': imagePath,
+    };
+  }
+
   // You can add other methods here, e.g., for serialization/deserialization if needed.
 }

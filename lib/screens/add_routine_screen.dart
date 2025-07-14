@@ -3,16 +3,15 @@ import '../models/routine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/product.dart'; // Import the Product class
+import '../database/database_helper.dart'; // Import the DatabaseHelper
 import 'product_selection_screen.dart'; // Import the new screen
 
 class AddRoutineScreen extends StatefulWidget {
   final Routine? routine;
-
-  // Make routine optional, null means adding, non-null means editing
   const AddRoutineScreen({super.key, this.routine});
 
   @override
-  _AddRoutineScreenState createState() => _AddRoutineScreenState();
+  State<AddRoutineScreen> createState() => _AddRoutineScreenState();
 }
 
 class _AddRoutineScreenState extends State<AddRoutineScreen> {
@@ -55,13 +54,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       _formKey.currentState!.save();
 
       final user = _auth.currentUser;
-      if (user == null) {
-        // Handle the case where the user is not logged in
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please log in to save a routine')),
-        );
-        return;
-      }
 
       // Use the existing routine ID if editing, otherwise a new one will be generated
       final routineToSave = Routine(
@@ -72,21 +64,34 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         notes: currentRoutine.notes,
       );
 
-      try {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('routines')
-            .doc(routineToSave.id) // Use routineToSave.id
-            .set(routineToSave.toMap()); // Use routineToSave.toMap()
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Routine saved successfully!')),
-        );
-        Navigator.pop(context); // Go back after saving
-      } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving routine: $e')));
+      if (user == null) {
+        // Handle the case where the user is not logged in (local save)
+        if (widget.routine == null) {
+          // Adding a new routine
+          onSaveLocal(routineToSave);
+        } else {
+          // Updating an existing routine
+          onUpdateLocal(routineToSave);
+        }
+      } else {
+        // User is logged in (Firestore save)
+
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('routines')
+              .doc(routineToSave.id) // Use routineToSave.id
+              .set(routineToSave.toMap()); // Use routineToSave.toMap()
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Routine saved successfully!')),
+          );
+          Navigator.pop(context); // Go back after saving
+        } catch (e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error saving routine: $e')));
+        }
       }
     }
   }
@@ -213,5 +218,24 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         ),
       ),
     );
+  }
+
+  void onSaveLocal(Routine routineToSave) async {
+    await DatabaseHelper().insertRoutine(routineToSave);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Routine saved locally!')));
+    Navigator.pop(context); // Go back after saving
+  }
+
+  void onUpdateLocal(Routine routineToSave) async {
+    // Ensure the routineToSave has a valid ID for updating
+    if (routineToSave.id != null && routineToSave.id!.isNotEmpty) {
+      await DatabaseHelper().updateRoutine(routineToSave);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Routine updated locally!')));
+      Navigator.pop(context); // Go back after updating
+    }
   }
 }
