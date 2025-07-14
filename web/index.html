@@ -34,11 +34,15 @@
 </head>
 <body>
 
-
-  <script type="module">
-    import { initializeApp } from "/firebase/app";
-    import { getAnalytics } from "/firebase/analytics";
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
     // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
       apiKey: "AIzaSyAUhCWKuALFTDIOFucDrlnAHp13-wafyiY",
       authDomain: "carelog-c37f3.firebaseapp.com",
@@ -48,10 +52,9 @@
       appId: "1:355454719687:web:c21019baa4b113e25310e2",
       measurementId: "G-CJX3BH61KD"
     };
-
+  
     // Initialize Firebase
-    const app = await firebase.initializeApp(firebaseConfig);
-    // Initialize other Firebase products you use here, e.g., firebase.auth(), firebase.firestore()
+    const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
   </script>
 
