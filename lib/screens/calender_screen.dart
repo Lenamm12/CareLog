@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:carelog/models/routine.dart'; // Import Routine model
+import 'package:carelog/database/database_helper.dart'; // Import DatabaseHelper
 
 int getDaysInMonth(int year, int month) {
   if (month == DateTime.february) {
@@ -82,21 +83,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildUpcomingRoutinesList() {
-    if (currentUser == null) {
-      return const Center(child: Text('Please log in to view your routines.'));
-    }
-
-    // If no date is selected, show a message
     if (_selectedDay == null) {
       return const Center(
         child: Text('Select a day to see upcoming routines.'),
       );
     }
 
-    // ... (login and selected day checks)
+    if (currentUser == null) {
+      return FutureBuilder<List<Routine>>(
+        future: DatabaseHelper.instance.getRoutines(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error fetching routines: ${snapshot.error}'),
+            );
+          }
 
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          final routines = snapshot.data ?? [];
+          return _buildRoutinesList(routines);
+        },
+      );
+    }
     return StreamBuilder<QuerySnapshot>(
-      // This StreamBuilder fetches all routines
       stream:
           _firestore
               .collection('users')
@@ -114,50 +126,46 @@ class _CalendarScreenState extends State<CalendarScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasData && snapshot.data != null) {}
-
-        // Populate _routinesByDay with fetched routines
-        snapshot.data!.docs.forEach((doc) {
-          final routine = Routine.fromFirestore(doc);
-          // Here's where you determine the scheduled dates for each routine
-          // and add the routine to the _routinesByDay map for those dates.
-          // This is the part that needs the frequency logic.
-
-          // Example (basic daily frequency):
-          if (routine.frequency == 'Daily') {
-            // Assuming you have a start date for the routine
-            // For simplicity, let's just add it to the current month for now
-            final now = DateTime.now();
-            final daysInMonth = getDaysInMonth(now.year, now.month);
-            for (int i = 1; i <= daysInMonth; i++) {
-              final day = DateTime(now.year, now.month, i);
-              if (_routinesByDay[day] == null) {
-                _routinesByDay[day] = [];
-              }
-              _routinesByDay[day]!.add(routine);
-            }
-          }
-          // You would add similar logic for Weekly, Monthly, Custom frequencies
-        });
-
-        // Now, after populating _routinesByDay, filter for the selected day
-        final selectedDayRoutines = _routinesByDay[_selectedDay] ?? [];
-
-        if (selectedDayRoutines.isEmpty) {
-          return const Center(
-            child: Text('No routines scheduled for this day.'),
-          );
+        if (snapshot.hasData && snapshot.data != null) {
+            final routines = snapshot.data!.docs.map((doc) => Routine.fromFirestore(doc)).toList();
+            return _buildRoutinesList(routines);
         }
 
-        return ListView.builder(
-          itemCount: selectedDayRoutines.length,
-          itemBuilder: (context, index) {
-            final routine = selectedDayRoutines[index];
-            return ListTile(
-              title: Text(routine.name),
-              // Add more details here
-            );
-          },
+        return const Center(child: Text("No routines found"));
+      },
+    );
+  }
+
+  Widget _buildRoutinesList(List<Routine> routines) {
+    _routinesByDay.clear();
+    for (var routine in routines) {
+      if (routine.frequency == 'Daily') {
+        final now = DateTime.now();
+        final daysInMonth = getDaysInMonth(now.year, now.month);
+        for (int i = 1; i <= daysInMonth; i++) {
+          final day = DateTime(now.year, now.month, i);
+          if (_routinesByDay[day] == null) {
+            _routinesByDay[day] = [];
+          }
+          _routinesByDay[day]!.add(routine);
+        }
+      }
+    }
+
+    final selectedDayRoutines = _routinesByDay[_selectedDay] ?? [];
+
+    if (selectedDayRoutines.isEmpty) {
+      return const Center(
+        child: Text('No routines scheduled for this day.'),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: selectedDayRoutines.length,
+      itemBuilder: (context, index) {
+        final routine = selectedDayRoutines[index];
+        return ListTile(
+          title: Text(routine.name),
         );
       },
     );

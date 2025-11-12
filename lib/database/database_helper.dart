@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 
 import '../models/routine.dart';
 import '../models/product.dart';
+
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._();
   static Database? _database;
@@ -22,11 +23,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'carelog_app.db');
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -65,17 +62,21 @@ class DatabaseHelper {
       'brand': product.brand,
       'type': product.type,
       'benefit': product.benefit,
-      'purchaseDate': product.purchaseDate.millisecondsSinceEpoch,
+      'purchaseDate': product.purchaseDate?.millisecondsSinceEpoch,
       'price': product.price,
-      'openingDate': product.openingDate.millisecondsSinceEpoch,
+      'openingDate': product.openingDate?.millisecondsSinceEpoch,
       'expiryPeriod': product.expiryPeriod,
-      'expiryDate': product.expiryDate.millisecondsSinceEpoch,
+      'expiryDate': product.expiryDate?.millisecondsSinceEpoch,
       'imagePath': product.imagePath,
       'notes': product.notes,
     };
-    return await db.insert('products', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'products',
+      map,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
-  
+
   Future<int> updateProduct(Product product) async {
     final db = await database;
     final map = {
@@ -84,15 +85,20 @@ class DatabaseHelper {
       'brand': product.brand,
       'type': product.type,
       'benefit': product.benefit,
-      'purchaseDate': product.purchaseDate.millisecondsSinceEpoch,
+      'purchaseDate': product.purchaseDate?.millisecondsSinceEpoch,
       'price': product.price,
-      'openingDate': product.openingDate.millisecondsSinceEpoch,
+      'openingDate': product.openingDate?.millisecondsSinceEpoch,
       'expiryPeriod': product.expiryPeriod,
-      'expiryDate': product.expiryDate.millisecondsSinceEpoch,
+      'expiryDate': product.expiryDate?.millisecondsSinceEpoch,
       'imagePath': product.imagePath,
       'notes': product.notes,
     };
-    return await db.update('products', map, where: 'id = ?', whereArgs: [product.id]);
+    return await db.update(
+      'products',
+      map,
+      where: 'id = ?',
+      whereArgs: [product.id],
+    );
   }
 
   Future<List<Product>> getProducts() async {
@@ -102,7 +108,7 @@ class DatabaseHelper {
       return Product.fromMap(maps[i]);
     });
   }
-  
+
   Future<int> deleteProduct(String id) async {
     Database db = await instance.database;
     return await db.delete('products', where: 'id = ?', whereArgs: [id]);
@@ -115,10 +121,16 @@ class DatabaseHelper {
       'id': routine.id,
       'name': routine.name,
       'frequency': routine.frequency,
-      'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
+      'productIds': jsonEncode(
+        routine.products?.map((p) => p.id).toList() ?? [],
+      ),
       'notes': routine.notes,
     };
-    return await db.insert('routines', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'routines',
+      map,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<Routine>> getRoutines() async {
@@ -141,10 +153,17 @@ class DatabaseHelper {
       'id': routine.id,
       'name': routine.name,
       'frequency': routine.frequency,
-      'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
+      'productIds': jsonEncode(
+        routine.products?.map((p) => p.id).toList() ?? [],
+      ),
       'notes': routine.notes,
     };
-    return await db.update('routines', map, where: 'id = ?', whereArgs: [routine.id]);
+    return await db.update(
+      'routines',
+      map,
+      where: 'id = ?',
+      whereArgs: [routine.id],
+    );
   }
 
   Future<int> deleteRoutine(String id) async {

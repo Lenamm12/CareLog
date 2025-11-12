@@ -39,7 +39,6 @@ class AuthService {
 
   /// Synchronizes local data to Firestore for the current signed-in user.
   Future<void> synchronizeData() async {
-    // TODO: Implement data synchronization logic here
     final user = _auth.currentUser;
     if (user == null) {
       print('User not signed in. Cannot synchronize data.');
@@ -64,11 +63,17 @@ class AuthService {
           'brand': product.brand,
           'type': product.type,
           'benefit': product.benefit,
-          'purchaseDate': Timestamp.fromDate(product.purchaseDate),
+          'purchaseDate': Timestamp.fromDate(
+            product.purchaseDate ?? DateTime.now(),
+          ),
           'price': product.price,
-          'openingDate': Timestamp.fromDate(product.openingDate),
+          'openingDate': Timestamp.fromDate(
+            product.openingDate ?? DateTime.now(),
+          ),
           'expiryPeriod': product.expiryPeriod,
-          'expiryDate': Timestamp.fromDate(product.expiryDate),
+          'expiryDate': Timestamp.fromDate(
+            product.expiryDate ?? DateTime.now(),
+          ),
           'imagePath': product.imagePath,
           'notes': product.notes,
         });
@@ -77,11 +82,24 @@ class AuthService {
       print('Uploaded ${localProducts.length} products to Firestore.');
     }
 
-    // TODO: Implement uploading routines and clearing local database
+    // Upload local routines to Firestore
     if (localRoutines.isNotEmpty) {
-      print('Synchronizing ${localRoutines.length} routines...');
-      // You'll need to implement the logic to upload routines,
-      // including handling the product IDs stored as a JSON string.
+      final batch = firestore.batch();
+      for (final routine in localRoutines) {
+        final docRef = firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('routines')
+            .doc(routine.id);
+        batch.set(docRef, {
+          'name': routine.name,
+          'frequency': routine.frequency,
+          'notes': routine.notes,
+          'products': routine.products?.map((p) => p.id).toList() ?? [],
+        });
+      }
+      await batch.commit();
+      print('Uploaded ${localRoutines.length} routines to Firestore.');
     }
   }
 }

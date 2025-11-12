@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Product? product;
@@ -14,6 +15,8 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   late bool _isEditing;
   String _name = '';
@@ -22,17 +25,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime _purchaseDate = DateTime.now();
   String _price = '';
   DateTime _openingDate = DateTime.now();
-  String _expiryPeriod = '6 months'; // Default value
-  final int _customExpiryValue = 0;
-  final String _customExpiryUnit = 'days';
+  String _expiryPeriod = '6 months';
   String _notes = '';
+
+  List<Product> _generalProducts = [];
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _brandController = TextEditingController();
+  final TextEditingController _benefitController = TextEditingController();
 
   final List<String> _expiryPeriods = [
     '6 months',
     '12 months',
     '24 months',
     '36 months',
-    'Custom',
   ];
 
   @override
@@ -43,16 +48,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _name = widget.product!.name;
       _brand = widget.product!.brand;
       _benefit = widget.product!.benefit;
-      _purchaseDate = widget.product!.purchaseDate;
-      _price = widget.product!.price.toString();
-      _openingDate = widget.product!.openingDate;
-      _expiryPeriod = widget.product!.expiryPeriod;
-      _notes = widget.product!.notes;
-      // For custom expiry, you might need to parse _expiryPeriod
+      _purchaseDate = widget.product!.purchaseDate ?? DateTime.now();
+      _price = widget.product!.price?.toString() ?? '';
+      _openingDate = widget.product!.openingDate ?? DateTime.now();
+      _expiryPeriod = widget.product!.expiryPeriod ?? '6 months';
+      _notes = widget.product!.notes ?? '';
     }
+    _nameController.text = _name;
+    _brandController.text = _brand;
+    _benefitController.text = _benefit;
+    _fetchGeneralProducts();
   }
 
-  final List<String> _customExpiryUnits = ['days', 'months', 'years'];
+  Future<void> _fetchGeneralProducts() async {
+    try {
+      final snapshot = await _firestore.collection('products').get();
+      setState(() {
+        _generalProducts =
+            snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+      });
+    } catch (e) {
+      // Handle error
+    }
+  }
 
   Future<void> _selectDate(
     BuildContext context,
@@ -70,30 +88,32 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  void _saveProduct() {
+  void _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      final user = _auth.currentUser;
+      if (user == null) return;
 
-      // Calculate expiry date based on the selected period
-      DateTime calculatedExpiryDate;
-      if (_expiryPeriod == 'Custom') {
-        // Assuming Product.calculateExpiryDate handles custom values
-        calculatedExpiryDate = Product.calculateExpiryDate(
-          _openingDate,
-          '$_customExpiryValue $_customExpiryUnit',
-        );
-      } else {
-        calculatedExpiryDate = Product.calculateExpiryDate(
-          _openingDate,
-          _expiryPeriod,
-        );
+      // Check if the product exists in the general list
+      QuerySnapshot querySnapshot =
+          await _firestore
+              .collection('products')
+              .where('name', isEqualTo: _name)
+              .where('brand', isEqualTo: _brand)
+              .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        // Add to general product list if it doesn't exist
+        await _firestore.collection('products').add({
+          'name': _name,
+          'brand': _brand,
+          'benefit': _benefit,
+        });
       }
 
       if (_isEditing) {
         final updatedProduct = Product(
-          id: widget.product!.id, // Use the existing ID
+          id: widget.product!.id,
           name: _name,
           brand: _brand,
           benefit: _benefit,
@@ -101,12 +121,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
           price: double.tryParse(_price) ?? 0.0,
           openingDate: _openingDate,
           expiryPeriod: _expiryPeriod,
-          expiryDate: calculatedExpiryDate,
           notes: _notes,
-          type: '',
         );
-        onUpdate(updatedProduct);
-        Navigator.pop(context); // Go back after updating
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .doc(widget.product!.id)
+            .update(updatedProduct.toMap());
       } else {
         final newProduct = Product(
           name: _name,
@@ -116,67 +138,104 @@ class _AddProductScreenState extends State<AddProductScreen> {
           price: double.tryParse(_price) ?? 0.0,
           openingDate: _openingDate,
           expiryPeriod: _expiryPeriod,
-          expiryDate: calculatedExpiryDate,
           notes: _notes,
-          type: '',
         );
 
-        _firestore.collection('products').doc(newProduct.id).set({
-          'name': newProduct.name,
-          'brand': newProduct.brand,
-          'benefit': newProduct.benefit,
-          'purchaseDate': Timestamp.fromDate(newProduct.purchaseDate),
-          'price': newProduct.price,
-          'openingDate': Timestamp.fromDate(newProduct.openingDate),
-          'expiryDate': Timestamp.fromDate(newProduct.expiryDate),
-          'notes': newProduct.notes,
-          'type': newProduct.type,
-        });
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .add(newProduct.toMap());
       }
+
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add New Product')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Product' : 'Add Product')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // Added const for performance
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a product name';
+              Autocomplete<Product>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<Product>.empty();
                   }
-                  return null;
+                  return _generalProducts.where((Product option) {
+                    return option.name.toLowerCase().contains(
+                      textEditingValue.text.toLowerCase(),
+                    );
+                  });
                 },
-                initialValue: _name, // Pre-fill for editing
-                onSaved: (value) {
-                  _name = value!;
+                displayStringForOption:
+                    (Product option) =>
+                        option.name +
+                        ' - ' +
+                        option.brand +
+                        "(" +
+                        option.benefit +
+                        ")",
+                onSelected: (Product selection) {
+                  setState(() {
+                    _name = selection.name;
+                    _brand = selection.brand;
+                    _benefit = selection.benefit;
+                    _nameController.text = _name;
+                    _brandController.text = _brand;
+                    _benefitController.text = _benefit;
+                  });
+                },
+                fieldViewBuilder: (
+                  BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted,
+                ) {
+                  _nameController.addListener(() {
+                    textEditingController.value = _nameController.value;
+                  });
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a product name';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _name = value!;
+                    },
+                  );
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Brand'),
+                controller: _brandController,
+                decoration: const InputDecoration(labelText: 'Brand'),
                 onSaved: (value) {
-                  _brand = value ?? ''; // Use null-aware assignment
+                  _brand = value ?? '';
                 },
-                initialValue: _brand, // Pre-fill for editing
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Benefit'),
+                controller: _benefitController,
+                decoration: const InputDecoration(labelText: 'Benefit'),
                 onSaved: (value) {
-                  _benefit = value ?? ''; // Use null-aware assignment
+                  _benefit = value ?? '';
                 },
-                initialValue: _benefit, // Pre-fill for editing
               ),
               TextFormField(
-                // Moved up for better flow
-                decoration: InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                initialValue: _price,
                 onSaved: (value) {
                   _price = value!;
                 },
@@ -185,7 +244,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 title: Text(
                   'Purchase Date: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
                 ),
-                trailing: Icon(Icons.calendar_today),
+                trailing: const Icon(Icons.calendar_today),
                 onTap:
                     () => _selectDate(context, _purchaseDate, (date) {
                       setState(() {
@@ -197,7 +256,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 title: Text(
                   'Opening Date: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',
                 ),
-                trailing: Icon(Icons.calendar_today),
+                trailing: const Icon(Icons.calendar_today),
                 onTap:
                     () => _selectDate(context, _openingDate, (date) {
                       setState(() {
@@ -206,7 +265,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     }),
               ),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Expiry Period'),
+                decoration: const InputDecoration(labelText: 'Expiry Period'),
                 value: _expiryPeriod,
                 items:
                     _expiryPeriods.map((String period) {
@@ -222,66 +281,24 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     });
                   }
                 },
-                onSaved: (value) {
-                  _expiryPeriod = value ?? ''; // Use null-aware assignment
-                },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Notes'),
+                decoration: const InputDecoration(labelText: 'Notes'),
                 maxLines: 3,
+                initialValue: _notes,
                 onSaved: (value) {
-                  _notes = value ?? ''; // Use null-aware assignment
+                  _notes = value ?? '';
                 },
-                initialValue: _notes, // Pre-fill for editing
               ),
-              if (_isEditing) // Show update and delete buttons in editing mode
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ElevatedButton(
-                    onPressed: _saveProduct, // This now handles update
-                    child: Text('Update Product'),
-                  ),
-                ),
-              if (_isEditing)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      onDelete(widget.product!.id);
-                      Navigator.pop(context); // Go back after deleting
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    child: Text('Delete Product'),
-                  ),
-                ),
-              if (!_isEditing)
-                Padding(
-                  // Show 'Add Product' button in adding mode
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: ElevatedButton(
-                    onPressed: _saveProduct,
-                    child: Text('Save Product'),
-                  ),
-                ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _saveProduct,
+                child: Text(_isEditing ? 'Update Product' : 'Add Product'),
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void onUpdate(Product updatedProduct) async {
-    await _firestore
-        .collection('products')
-        .doc(updatedProduct.id)
-        .update(updatedProduct.toMap());
-    Navigator.pop(context);
-  }
-
-  void onDelete(String id) async {
-    await _firestore.collection('products').doc(id).delete();
-    Navigator.pop(context);
   }
 }

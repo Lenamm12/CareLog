@@ -17,112 +17,116 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   List<Routine> _localRoutines = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  User? get currentUser => _auth.currentUser;
+  @override
+  void initState() {
+    super.initState();
+    _auth.authStateChanges().listen((user) {
+      if (user == null) {
+        _loadLocalRoutines();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = _auth.currentUser;
     return Scaffold(
       appBar: AppBar(title: const Text('My Routines')),
-      body: StreamBuilder<User?>(
-        stream: _auth.authStateChanges(),
-        builder: (context, authSnapshot) {
-          if (authSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final user = authSnapshot.data;
-
-          if (user == null) {
-            // User is signed out, display local data
-            _loadLocalRoutines(); // Load local data when signed out initially or on state change
-            return _localRoutines.isEmpty
-                ? const Center(child: Text('No local routines found.'))
-                : ListView.builder(
-                  itemCount: _localRoutines.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(_localRoutines[index].name),
-                      onTap: () {
-                        // Implement local routine editing
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => AddRoutineScreen(
-                                  routine: _localRoutines[index],
-                                ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-          } else {
-            // User is signed in, display Firestore data
-            return StreamBuilder<QuerySnapshot>(
-              stream:
-                  _firestore
-                      .collection('users')
-                      .doc(user.uid)
-                      .collection('routines')
-                      .snapshots(),
-              builder: (context, firestoreSnapshot) {
-                if (firestoreSnapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${firestoreSnapshot.error}'),
-                  );
-                }
-
-                if (firestoreSnapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final routines =
-                    firestoreSnapshot.data!.docs.map((doc) {
-                      return Routine.fromFirestore(doc);
-                    }).toList();
-
-                return ListView.builder(
-                  itemCount: routines.length,
-                  itemBuilder: (context, index) {
-                    final routine = routines[index];
-                    return ListTile(
-                      title: Text(routine.name),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => AddRoutineScreen(routine: routine),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            );
-          }
-        },
-      ),
+      body:
+          user == null ? _buildLocalRoutines() : _buildFirestoreRoutines(user),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // User is signed in, add to Firestore
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddRoutineScreen()),
-          );
+          ).then((_) {
+            if (user == null) {
+              _loadLocalRoutines();
+            }
+          });
         },
-        tooltip: 'Add New Routine', // Added tooltip for accessibility
-        child: const Icon(Icons.add), // Added const for performance
+        tooltip: 'Add New Routine',
+        child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildLocalRoutines() {
+    if (_localRoutines.isEmpty) {
+      return const Center(child: Text('2. And then create a routine'));
+    }
+    return ListView.builder(
+      itemCount: _localRoutines.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(_localRoutines[index].name),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) =>
+                        AddRoutineScreen(routine: _localRoutines[index]),
+              ),
+            ).then((_) => _loadLocalRoutines());
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFirestoreRoutines(User user) {
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('routines')
+              .snapshots(),
+      builder: (context, firestoreSnapshot) {
+        if (firestoreSnapshot.hasError) {
+          return Center(child: Text('Error: ${firestoreSnapshot.error}'));
+        }
+
+        if (firestoreSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final routines =
+            firestoreSnapshot.data!.docs.map((doc) {
+              return Routine.fromFirestore(doc);
+            }).toList();
+
+        return ListView.builder(
+          itemCount: routines.length,
+          itemBuilder: (context, index) {
+            final routine = routines[index];
+            return ListTile(
+              title: Text(routine.name),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddRoutineScreen(routine: routine),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
   Future<void> _loadLocalRoutines() async {
     final routines = await DatabaseHelper.instance.getRoutines();
-    setState(() {
-      _localRoutines = routines;
-    });
+    if (mounted) {
+      setState(() {
+        _localRoutines = routines;
+      });
+    }
   }
 }

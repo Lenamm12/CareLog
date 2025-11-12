@@ -230,7 +230,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   void onUpdateLocal(Routine routineToSave) async {
     // Ensure the routineToSave has a valid ID for updating
-    if (routineToSave.id != null && routineToSave.id!.isNotEmpty) {
+    if (routineToSave.id.isNotEmpty) {
       await DatabaseHelper().updateRoutine(routineToSave);
       ScaffoldMessenger.of(
         context,

@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "de.lenazeise.carelog"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -49,7 +49,7 @@ dependencies {
   implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
 
 
-  // TODO: Add the dependencies for Firebase products you want to use
+  // Add the dependencies for Firebase products you want to use
   // When using the BoM, don't specify versions in Firebase dependencies
   implementation("com.google.firebase:firebase-analytics")
 

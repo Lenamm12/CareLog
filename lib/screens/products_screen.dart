@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:carelog/models/product.dart';
 import 'package:flutter/material.dart';
 import 'add_product_screen.dart';
@@ -41,7 +42,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ConnectionState.waiting
                       ? const Center(child: CircularProgressIndicator())
                       : _localProducts.isEmpty
-                      ? const Center(child: Text('No products found locally.'))
+                      ? const Center(
+                        child: Text('1. Start by adding some products'),
+                      )
                       : Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -51,10 +54,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               child: ListView.builder(
                                 itemCount: _localProducts.length,
                                 itemBuilder: (context, index) {
-                                  // TODO: Handle image display from local storage
                                   return ListTile(
-                                    // This is a placeholder, you'll need to adjust based on your local image storage
-                                    // leading: Image(image: products[index].imagePath),
+                                    leading:
+                                        _localProducts[index].imagePath !=
+                                                    null &&
+                                                _localProducts[index]
+                                                    .imagePath!
+                                                    .isNotEmpty
+                                            ? Image.file(
+                                              File(
+                                                _localProducts[index]
+                                                    .imagePath!,
+                                              ),
+                                            )
+                                            : null,
                                     title: Text(
                                       _localProducts[index].name,
                                     ), // Assuming imagePath is a URL for Firestore
@@ -116,12 +129,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     title: Text(
                                       products[index].name,
                                     ), // Assuming imagePath is a URL for Firestore
-                                    onTap: () {},
-                                    // TODO: Implement editing for Firestore products
-                                    // Navigator.push(
-                                    // context,
-                                    // MaterialPageRoute(builder: (context) => AddProductScreen(product: products[index])),
-                                    // );
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => AddProductScreen(
+                                                product: products[index],
+                                              ),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),
