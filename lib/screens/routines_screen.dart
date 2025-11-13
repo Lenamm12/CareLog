@@ -1,6 +1,5 @@
 import 'package:carelog/models/routine.dart';
 import 'package:flutter/material.dart';
-import 'add_routine_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:carelog/database/database_helper.dart';
@@ -38,11 +37,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
       body:
           user == null ? _buildLocalRoutines() : _buildFirestoreRoutines(user),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'addRoutine',
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddRoutineScreen()),
-          ).then((_) {
+          Navigator.pushNamed(context, '/add_routine').then((_) {
             if (user == null) {
               _loadLocalRoutines();
             }
@@ -64,13 +61,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         return ListTile(
           title: Text(_localRoutines[index].name),
           onTap: () {
-            Navigator.push(
+            Navigator.pushNamed(
               context,
-              MaterialPageRoute(
-                builder:
-                    (context) =>
-                        AddRoutineScreen(routine: _localRoutines[index]),
-              ),
+              '/add_routine',
+              arguments: _localRoutines[index],
             ).then((_) => _loadLocalRoutines());
           },
         );
@@ -107,11 +101,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             return ListTile(
               title: Text(routine.name),
               onTap: () {
-                Navigator.push(
+                Navigator.pushNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => AddRoutineScreen(routine: routine),
-                  ),
+                  '/add_routine',
+                  arguments: routine,
                 );
               },
             );

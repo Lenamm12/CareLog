@@ -1,4 +1,8 @@
+import 'package:carelog/models/product.dart';
+import 'package:carelog/models/routine.dart';
 import 'package:carelog/models/theme_notifier.dart';
+import 'package:carelog/screens/add_product_screen.dart';
+import 'package:carelog/screens/add_routine_screen.dart';
 import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -29,7 +33,27 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Flutter Demo',
           theme: theme.currentTheme,
-          home: MainScreen(),
+          home: const MainScreen(),
+          onGenerateRoute: (settings) {
+            switch (settings.name) {
+              case '/add_product':
+                final args = settings.arguments as Product?;
+                return MaterialPageRoute(
+                  builder: (context) {
+                    return AddProductScreen(product: args);
+                  },
+                );
+              case '/add_routine':
+                final args = settings.arguments as Routine?;
+                return MaterialPageRoute(
+                  builder: (context) {
+                    return AddRoutineScreen(routine: args);
+                  },
+                );
+              default:
+                return null;
+            }
+          },
         );
       },
     );
@@ -47,10 +71,10 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    ProductsScreen(),
-    RoutinesScreen(),
-    CalendarScreen(),
-    SettingsScreen(),
+    const ProductsScreen(),
+    const RoutinesScreen(),
+    const CalendarScreen(),
+    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {

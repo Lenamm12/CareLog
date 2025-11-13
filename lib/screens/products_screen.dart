@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:carelog/models/product.dart';
 import 'package:flutter/material.dart';
-import 'add_product_screen.dart';
 import 'package:carelog/database/database_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,15 +71,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       _localProducts[index].name,
                                     ), // Assuming imagePath is a URL for Firestore
                                     onTap: () {
-                                      Navigator.push(
+                                      Navigator.pushNamed(
                                         context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => AddProductScreen(
-                                                product: _localProducts[index],
-                                              ),
-                                        ), // Pass the tapped product for editing
-                                      );
+                                        '/add_product',
+                                        arguments: _localProducts[index],
+                                      ); // Pass the tapped product for editing
                                     },
                                   );
                                 },
@@ -130,14 +125,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       products[index].name,
                                     ), // Assuming imagePath is a URL for Firestore
                                     onTap: () {
-                                      Navigator.push(
+                                      Navigator.pushNamed(
                                         context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => AddProductScreen(
-                                                product: products[index],
-                                              ),
-                                        ),
+                                        '/add_product',
+                                        arguments: products[index],
                                       );
                                     },
                                   );
@@ -150,11 +141,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     },
                   ),
           floatingActionButton: FloatingActionButton(
+            heroTag: 'addProduct',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddProductScreen()),
-              );
+              Navigator.pushNamed(context, '/add_product');
             },
             child: const Icon(Icons.add),
           ),

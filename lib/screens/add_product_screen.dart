@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/product.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../database/database_helper.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Product? product;
@@ -92,44 +93,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final user = _auth.currentUser;
-      if (user == null) return;
 
-      // Check if the product exists in the general list
-      QuerySnapshot querySnapshot =
-          await _firestore
-              .collection('products')
-              .where('name', isEqualTo: _name)
-              .where('brand', isEqualTo: _brand)
-              .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        // Add to general product list if it doesn't exist
-        await _firestore.collection('products').add({
-          'name': _name,
-          'brand': _brand,
-          'benefit': _benefit,
-        });
-      }
-
-      if (_isEditing) {
-        final updatedProduct = Product(
-          id: widget.product!.id,
-          name: _name,
-          brand: _brand,
-          benefit: _benefit,
-          purchaseDate: _purchaseDate,
-          price: double.tryParse(_price) ?? 0.0,
-          openingDate: _openingDate,
-          expiryPeriod: _expiryPeriod,
-          notes: _notes,
-        );
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('products')
-            .doc(widget.product!.id)
-            .update(updatedProduct.toMap());
-      } else {
+      if (user == null) {
         final newProduct = Product(
           name: _name,
           brand: _brand,
@@ -140,14 +105,65 @@ class _AddProductScreenState extends State<AddProductScreen> {
           expiryPeriod: _expiryPeriod,
           notes: _notes,
         );
-
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
+        if (_isEditing) {
+          await DatabaseHelper.instance.updateProduct(newProduct);
+        } else {
+          await DatabaseHelper.instance.insertProduct(newProduct);
+        }
+      } else {
+        // Check if the product exists in the general list
+        QuerySnapshot querySnapshot = await _firestore
             .collection('products')
-            .add(newProduct.toMap());
-      }
+            .where('name', isEqualTo: _name)
+            .where('brand', isEqualTo: _brand)
+            .get();
 
+        if (querySnapshot.docs.isEmpty) {
+          // Add to general product list if it doesn't exist
+          await _firestore.collection('products').add({
+            'name': _name,
+            'brand': _brand,
+            'benefit': _benefit,
+          });
+        }
+
+        if (_isEditing) {
+          final updatedProduct = Product(
+            id: widget.product!.id,
+            name: _name,
+            brand: _brand,
+            benefit: _benefit,
+            purchaseDate: _purchaseDate,
+            price: double.tryParse(_price) ?? 0.0,
+            openingDate: _openingDate,
+            expiryPeriod: _expiryPeriod,
+            notes: _notes,
+          );
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('products')
+              .doc(widget.product!.id)
+              .update(updatedProduct.toMap());
+        } else {
+          final newProduct = Product(
+            name: _name,
+            brand: _brand,
+            benefit: _benefit,
+            purchaseDate: _purchaseDate,
+            price: double.tryParse(_price) ?? 0.0,
+            openingDate: _openingDate,
+            expiryPeriod: _expiryPeriod,
+            notes: _notes,
+          );
+
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('products')
+              .add(newProduct.toMap());
+        }
+      }
       Navigator.pop(context);
     }
   }
@@ -169,18 +185,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   }
                   return _generalProducts.where((Product option) {
                     return option.name.toLowerCase().contains(
-                      textEditingValue.text.toLowerCase(),
-                    );
+                          textEditingValue.text.toLowerCase(),
+                        );
                   });
                 },
-                displayStringForOption:
-                    (Product option) =>
-                        option.name +
-                        ' - ' +
-                        option.brand +
-                        "(" +
-                        option.benefit +
-                        ")",
+                displayStringForOption: (Product option) =>
+                    option.name +
+                    ' - ' +
+                    option.brand +
+                    "(" +
+                    option.benefit +
+                    ")",
                 onSelected: (Product selection) {
                   setState(() {
                     _name = selection.name;
@@ -245,35 +260,32 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   'Purchase Date: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
-                onTap:
-                    () => _selectDate(context, _purchaseDate, (date) {
-                      setState(() {
-                        _purchaseDate = date;
-                      });
-                    }),
+                onTap: () => _selectDate(context, _purchaseDate, (date) {
+                  setState(() {
+                    _purchaseDate = date;
+                  });
+                }),
               ),
               ListTile(
                 title: Text(
                   'Opening Date: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
-                onTap:
-                    () => _selectDate(context, _openingDate, (date) {
-                      setState(() {
-                        _openingDate = date;
-                      });
-                    }),
+                onTap: () => _selectDate(context, _openingDate, (date) {
+                  setState(() {
+                    _openingDate = date;
+                  });
+                }),
               ),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Expiry Period'),
                 value: _expiryPeriod,
-                items:
-                    _expiryPeriods.map((String period) {
-                      return DropdownMenuItem<String>(
-                        value: period,
-                        child: Text(period),
-                      );
-                    }).toList(),
+                items: _expiryPeriods.map((String period) {
+                  return DropdownMenuItem<String>(
+                    value: period,
+                    child: Text(period),
+                  );
+                }).toList(),
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
