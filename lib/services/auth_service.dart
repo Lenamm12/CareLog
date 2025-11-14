@@ -62,7 +62,6 @@ class AuthService {
           'name': product.name,
           'brand': product.brand,
           'type': product.type,
-          'benefit': product.benefit,
           'purchaseDate': Timestamp.fromDate(
             product.purchaseDate ?? DateTime.now(),
           ),

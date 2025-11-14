@@ -1,3 +1,4 @@
+import 'package:carelog/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,10 +36,18 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   Future<void> _fetchUserProducts() async {
     final user = _auth.currentUser;
     if (user == null) {
-      setState(() {
-        _error = 'Please log in to select products.';
-        _isLoading = false;
-      });
+      try {
+        final localProducts = await DatabaseHelper.instance.getProducts();
+        setState(() {
+          _userProducts = localProducts;
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _error = 'Error fetching local products: $e';
+          _isLoading = false;
+        });
+      }
       return;
     }
 

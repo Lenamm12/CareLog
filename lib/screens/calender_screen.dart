@@ -5,24 +5,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:carelog/models/routine.dart'; // Import Routine model
 import 'package:carelog/database/database_helper.dart'; // Import DatabaseHelper
 
-int getDaysInMonth(int year, int month) {
-  if (month == DateTime.february) {
-    return isLeapYear(year) ? 29 : 28;
-  } else if (month == DateTime.april ||
-      month == DateTime.june ||
-      month == DateTime.september ||
-      month == DateTime.november) {
-    return 30;
-  } else {
-    return 31;
-  }
-}
-
-// Helper function to check for leap year
-bool isLeapYear(int year) {
-  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-}
-
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
@@ -38,9 +20,71 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  final Map<DateTime, List<Routine>> _routinesByDay = {};
+  Map<DateTime, List<Routine>> _routinesByDay = {};
 
   User? get currentUser => _auth.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    // Fetch routines when the screen loads
+    _fetchRoutines();
+  }
+
+  void _fetchRoutines() async {
+    if (currentUser == null) {
+      final routines = await DatabaseHelper.instance.getRoutines();
+      _populateRoutinesByDay(routines);
+    } else {
+      _firestore
+          .collection('users')
+          .doc(currentUser!.uid)
+          .collection('routines')
+          .snapshots()
+          .listen((snapshot) {
+        final routines =
+            snapshot.docs.map((doc) => Routine.fromFirestore(doc)).toList();
+        _populateRoutinesByDay(routines);
+      });
+    }
+  }
+
+  void _populateRoutinesByDay(List<Routine> routines) {
+    final newRoutinesByDay = <DateTime, List<Routine>>{};
+    for (var routine in routines) {
+      // Get the start date of the calendar view
+      final firstDay = DateTime.utc(2020, 1, 1);
+      // Get the last date of the calendar view
+      final lastDay = DateTime.utc(2030, 12, 31);
+
+      for (var day = firstDay; day.isBefore(lastDay); day = day.add(const Duration(days: 1))) {
+        if (_shouldShowRoutineOnDay(routine, day)) {
+          final date = DateTime.utc(day.year, day.month, day.day);
+          if (newRoutinesByDay[date] == null) {
+            newRoutinesByDay[date] = [];
+          }
+          newRoutinesByDay[date]!.add(routine);
+        }
+      }
+    }
+    setState(() {
+      _routinesByDay = newRoutinesByDay;
+    });
+  }
+
+  bool _shouldShowRoutineOnDay(Routine routine, DateTime day) {
+    switch (routine.frequency) {
+      case 'Daily':
+        return true;
+      case 'Weekly':
+        return day.weekday == DateTime.monday; // Or any other logic
+      case 'Monthly':
+        return day.day == 1; // Or any other logic
+      default:
+        return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +118,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
             },
+            eventLoader: (day) {
+              return _routinesByDay[DateTime.utc(day.year, day.month, day.day)] ?? [];
+            },
           ),
           const SizedBox(height: 8.0),
           Expanded(child: _buildUpcomingRoutinesList()),
@@ -89,70 +136,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    if (currentUser == null) {
-      return FutureBuilder<List<Routine>>(
-        future: DatabaseHelper.instance.getRoutines(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error fetching routines: ${snapshot.error}'),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          final routines = snapshot.data ?? [];
-          return _buildRoutinesList(routines);
-        },
-      );
-    }
-    return StreamBuilder<QuerySnapshot>(
-      stream:
-          _firestore
-              .collection('users')
-              .doc(currentUser!.uid)
-              .collection('routines')
-              .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Error fetching routines: ${snapshot.error}'),
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasData && snapshot.data != null) {
-            final routines = snapshot.data!.docs.map((doc) => Routine.fromFirestore(doc)).toList();
-            return _buildRoutinesList(routines);
-        }
-
-        return const Center(child: Text("No routines found"));
-      },
-    );
-  }
-
-  Widget _buildRoutinesList(List<Routine> routines) {
-    _routinesByDay.clear();
-    for (var routine in routines) {
-      if (routine.frequency == 'Daily') {
-        final now = DateTime.now();
-        final daysInMonth = getDaysInMonth(now.year, now.month);
-        for (int i = 1; i <= daysInMonth; i++) {
-          final day = DateTime(now.year, now.month, i);
-          if (_routinesByDay[day] == null) {
-            _routinesByDay[day] = [];
-          }
-          _routinesByDay[day]!.add(routine);
-        }
-      }
-    }
-
-    final selectedDayRoutines = _routinesByDay[_selectedDay] ?? [];
+    final selectedDayRoutines = _routinesByDay[DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)] ?? [];
 
     if (selectedDayRoutines.isEmpty) {
       return const Center(

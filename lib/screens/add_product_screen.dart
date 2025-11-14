@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,17 +24,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
   late bool _isEditing;
   String _name = '';
   String _brand = '';
-  String _benefit = '';
+  String _type = '';
   DateTime _purchaseDate = DateTime.now();
   String _price = '';
   DateTime _openingDate = DateTime.now();
   String _expiryPeriod = '6 months';
   String _notes = '';
+  File? _image;
 
   List<Product> _generalProducts = [];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
-  final TextEditingController _benefitController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
 
   final List<String> _expiryPeriods = [
     '6 months',
@@ -48,16 +51,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (_isEditing) {
       _name = widget.product!.name;
       _brand = widget.product!.brand;
-      _benefit = widget.product!.benefit;
+      _type = widget.product!.type;
       _purchaseDate = widget.product!.purchaseDate ?? DateTime.now();
       _price = widget.product!.price?.toString() ?? '';
       _openingDate = widget.product!.openingDate ?? DateTime.now();
       _expiryPeriod = widget.product!.expiryPeriod ?? '6 months';
       _notes = widget.product!.notes ?? '';
+      if (widget.product!.imagePath != null) {
+        _image = File(widget.product!.imagePath!);
+      }
     }
     _nameController.text = _name;
     _brandController.text = _brand;
-    _benefitController.text = _benefit;
+    _typeController.text = _type;
     _fetchGeneralProducts();
   }
 
@@ -70,6 +76,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
       });
     } catch (e) {
       // Handle error
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
     }
   }
 
@@ -93,18 +108,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final user = _auth.currentUser;
+      final imagePath = _image?.path;
 
       if (user == null) {
         final newProduct = Product(
-          name: _name,
-          brand: _brand,
-          benefit: _benefit,
-          purchaseDate: _purchaseDate,
-          price: double.tryParse(_price) ?? 0.0,
-          openingDate: _openingDate,
-          expiryPeriod: _expiryPeriod,
-          notes: _notes,
-        );
+            name: _name,
+            brand: _brand,
+            type: _type,
+            purchaseDate: _purchaseDate,
+            price: double.tryParse(_price) ?? 0.0,
+            openingDate: _openingDate,
+            expiryPeriod: _expiryPeriod,
+            notes: _notes,
+            imagePath: imagePath);
         if (_isEditing) {
           await DatabaseHelper.instance.updateProduct(newProduct);
         } else {
@@ -123,22 +139,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
           await _firestore.collection('products').add({
             'name': _name,
             'brand': _brand,
-            'benefit': _benefit,
+            'type': _type,
           });
         }
 
         if (_isEditing) {
           final updatedProduct = Product(
-            id: widget.product!.id,
-            name: _name,
-            brand: _brand,
-            benefit: _benefit,
-            purchaseDate: _purchaseDate,
-            price: double.tryParse(_price) ?? 0.0,
-            openingDate: _openingDate,
-            expiryPeriod: _expiryPeriod,
-            notes: _notes,
-          );
+              id: widget.product!.id,
+              name: _name,
+              brand: _brand,
+              type: _type,
+              purchaseDate: _purchaseDate,
+              price: double.tryParse(_price) ?? 0.0,
+              openingDate: _openingDate,
+              expiryPeriod: _expiryPeriod,
+              notes: _notes,
+              imagePath: imagePath);
           await _firestore
               .collection('users')
               .doc(user.uid)
@@ -147,15 +163,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
               .update(updatedProduct.toMap());
         } else {
           final newProduct = Product(
-            name: _name,
-            brand: _brand,
-            benefit: _benefit,
-            purchaseDate: _purchaseDate,
-            price: double.tryParse(_price) ?? 0.0,
-            openingDate: _openingDate,
-            expiryPeriod: _expiryPeriod,
-            notes: _notes,
-          );
+              name: _name,
+              brand: _brand,
+              type: _type,
+              purchaseDate: _purchaseDate,
+              price: double.tryParse(_price) ?? 0.0,
+              openingDate: _openingDate,
+              expiryPeriod: _expiryPeriod,
+              notes: _notes,
+              imagePath: imagePath);
 
           await _firestore
               .collection('users')
@@ -178,6 +194,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _image != null ? FileImage(_image!) : null,
+                  child: _image == null
+                      ? const Icon(Icons.add_a_photo, size: 50)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
               Autocomplete<Product>(
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   if (textEditingValue.text == '') {
@@ -194,16 +221,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ' - ' +
                     option.brand +
                     "(" +
-                    option.benefit +
+                    option.type +
                     ")",
                 onSelected: (Product selection) {
                   setState(() {
                     _name = selection.name;
                     _brand = selection.brand;
-                    _benefit = selection.benefit;
+                    _type = selection.type;
                     _nameController.text = _name;
                     _brandController.text = _brand;
-                    _benefitController.text = _benefit;
+                    _typeController.text = _type;
                   });
                 },
                 fieldViewBuilder: (
@@ -239,10 +266,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               TextFormField(
-                controller: _benefitController,
-                decoration: const InputDecoration(labelText: 'Benefit'),
+                controller: _typeController,
+                decoration: const InputDecoration(labelText: 'Type'),
                 onSaved: (value) {
-                  _benefit = value ?? '';
+                  _type = value ?? '';
                 },
               ),
               TextFormField(

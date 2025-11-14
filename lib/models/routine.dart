@@ -4,11 +4,12 @@ import 'product.dart'; // Assuming your Product class is in product.dart
 import 'package:uuid/uuid.dart';
 
 class Routine {
-  late final String id;
+  final String id;
   String name;
   List<Product>? products;
   String frequency;
   String notes;
+  DateTime? lastDone;
 
   Routine({
     String? id,
@@ -16,7 +17,8 @@ class Routine {
     this.products,
     required this.frequency,
     required this.notes,
-  }) : id = const Uuid().v4();
+    this.lastDone,
+  }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,17 +28,20 @@ class Routine {
           products?.map((product) => product.id).toList(), // Store product IDs
       'frequency': frequency,
       'notes': notes,
+      'lastDone': lastDone,
     };
   }
 
   factory Routine.fromFirestore(QueryDocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Routine(
+      id: doc.id,
       name: data['name'] ?? '',
       // products will be fetched separately based on IDs
       products: null, // Initialize products as null or an empty list
       frequency: data['frequency'] ?? '',
       notes: data['notes'] ?? '',
+      lastDone: data['lastDone'] != null ? (data['lastDone'] as Timestamp).toDate() : null,
     );
   }
 
@@ -52,6 +57,7 @@ class Routine {
       products: null,
       frequency: routineMap['frequency'] ?? '',
       notes: routineMap['notes'] ?? '',
+      lastDone: routineMap['lastDone'] != null ? DateTime.fromMillisecondsSinceEpoch(routineMap['lastDone']) : null,
     );
   }
 }

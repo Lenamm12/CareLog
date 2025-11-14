@@ -58,8 +58,17 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return ListView.builder(
       itemCount: _localRoutines.length,
       itemBuilder: (context, index) {
+        final routine = _localRoutines[index];
+        final isDone = routine.lastDone != null &&
+            isSameDay(routine.lastDone!, DateTime.now());
         return ListTile(
-          title: Text(_localRoutines[index].name),
+          title: Text(routine.name),
+          trailing: Checkbox(
+            value: isDone,
+            onChanged: (value) {
+              _updateRoutineLastDone(routine, value! ? DateTime.now() : null);
+            },
+          ),
           onTap: () {
             Navigator.pushNamed(
               context,
@@ -98,8 +107,16 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           itemCount: routines.length,
           itemBuilder: (context, index) {
             final routine = routines[index];
+            final isDone = routine.lastDone != null &&
+                isSameDay(routine.lastDone!, DateTime.now());
             return ListTile(
               title: Text(routine.name),
+              trailing: Checkbox(
+                value: isDone,
+                onChanged: (value) {
+                  _updateRoutineLastDone(routine, value! ? DateTime.now() : null);
+                },
+              ),
               onTap: () {
                 Navigator.pushNamed(
                   context,
@@ -121,5 +138,27 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         _localRoutines = routines;
       });
     }
+  }
+
+  void _updateRoutineLastDone(Routine routine, DateTime? lastDone) async {
+    final user = _auth.currentUser;
+    routine.lastDone = lastDone;
+    if (user == null) {
+      await DatabaseHelper.instance.updateRoutine(routine);
+      _loadLocalRoutines();
+    } else {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('routines')
+          .doc(routine.id)
+          .update({'lastDone': lastDone});
+    }
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 }

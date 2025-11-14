@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -6,7 +7,6 @@ class Product {
   String name;
   String brand;
   String type;
-  String benefit;
   DateTime? purchaseDate;
   double? price;
   DateTime? openingDate;
@@ -19,8 +19,7 @@ class Product {
     String? id,
     required this.name,
     required this.brand,
-    this.type = '',
-    required this.benefit,
+    required this.type,
     this.purchaseDate,
     this.price,
     this.openingDate,
@@ -64,7 +63,6 @@ class Product {
       id: doc.id,
       name: data['name'] ?? '',
       brand: data['brand'] ?? '',
-      benefit: data['benefit'] ?? '',
       type: data['type'] ?? '',
       purchaseDate:
           data['purchaseDate'] != null
@@ -89,7 +87,6 @@ class Product {
     return {
       'name': name,
       'brand': brand,
-      'benefit': benefit,
       'type': type,
       'purchaseDate': purchaseDate,
       'price': price,
@@ -106,13 +103,18 @@ class Product {
       id: map['id'],
       name: map['name'],
       brand: map['brand'],
-      benefit: map['benefit'],
       type: map['type'],
-      purchaseDate: map['purchaseDate'],
+      purchaseDate: map['purchaseDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['purchaseDate'])
+          : null,
       price: map['price'],
-      openingDate: map['openingDate'],
+      openingDate: map['openingDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['openingDate'])
+          : null,
       expiryPeriod: map['expiryPeriod'],
-      expiryDate: map['expiryDate'],
+      expiryDate: map['expiryDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['expiryDate'])
+          : null,
       notes: map['notes'],
       imagePath: map['imagePath'],
     );
