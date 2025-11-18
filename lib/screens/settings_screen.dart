@@ -4,6 +4,8 @@ import 'package:carelog/services/auth_service.dart'; // Import the AuthService
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -74,6 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final l10n = AppLocalizations.of(context)!;
     final colorSchemes = {
       'Pink': Colors.pink[300]!,
       'Purple': Colors.purple[300]!,
@@ -83,16 +86,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     };
 
     return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: <Widget>[
           Text(
-            'Personalization',
+            l10n.personalization,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
-          Text('Font Size: ${themeNotifier.fontSize.toStringAsFixed(1)}'),
+          Text(
+            '${l10n.fontSize}: ${themeNotifier.fontSize.toStringAsFixed(1)}',
+          ),
           Slider(
             value: themeNotifier.fontSize,
             min: 12.0,
@@ -104,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const SizedBox(height: 20),
-          const Text('Color Scheme'),
+          Text(l10n.colorScheme),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -135,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text('Dark Mode'),
+              Text(l10n.darkMode),
               Switch(
                 value: themeNotifier.isDarkMode,
                 onChanged: (bool value) {
@@ -148,40 +153,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           const SizedBox(height: 40),
-          Text('User data', style: Theme.of(context).textTheme.headlineSmall),
+          Text(l10n.userData, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 20),
-          Text(
-            'If you want to save your data across devices, please sign in with Google',
-          ),
+          Text(l10n.signInPrompt),
           Center(
             child: ElevatedButton(
               onPressed: _signInWithGoogle,
-              child: const Text('Sign in with Google'),
+              child: Text(l10n.signInWithGoogle),
             ),
           ),
           const SizedBox(height: 40),
-          Text('Feedback', style: Theme.of(context).textTheme.headlineSmall),
+          Text(l10n.feedback, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 20),
           Row(
             children: [
-              TextButton(
-                onPressed: rateApp,
-                child: const Text('Rate this app'),
-              ),
-              TextButton(onPressed: contactUs, child: const Text('Contact Us')),
+              TextButton(onPressed: rateApp, child: Text(l10n.rateApp)),
+              TextButton(onPressed: contactUs, child: Text(l10n.contactUs)),
             ],
           ),
 
           const SizedBox(height: 40),
-          Text('Information', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            l10n.information,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 20),
           Row(
             children: [
-              TextButton(
-                onPressed: openPlayStore,
-                child: const Text('Other apps'),
-              ),
-              TextButton(onPressed: openWeb, child: const Text('Our website')),
+              TextButton(onPressed: openPlayStore, child: Text(l10n.otherApps)),
+              TextButton(onPressed: openWeb, child: Text(l10n.ourWebsite)),
             ],
           ),
 
@@ -190,11 +190,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               TextButton(
                 onPressed: termsOfService,
-                child: const Text('Terms of Service'),
+                child: Text(l10n.termsOfService),
               ),
               TextButton(
                 onPressed: privacyPolicy,
-                child: const Text('Privacy Policy'),
+                child: Text(l10n.privacyPolicy),
               ),
             ],
           ),

@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:carelog/database/database_helper.dart';
 
+import '../l10n/app_localizations.dart';
+
 class RoutinesScreen extends StatefulWidget {
   const RoutinesScreen({super.key});
 
@@ -32,8 +34,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('My Routines')),
+      appBar: AppBar(title: Text(l10n.myRoutines)),
       body:
           user == null ? _buildLocalRoutines() : _buildFirestoreRoutines(user),
       floatingActionButton: FloatingActionButton(
@@ -45,15 +48,16 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             }
           });
         },
-        tooltip: 'Add New Routine',
+        tooltip: l10n.addNewRoutine,
         child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildLocalRoutines() {
+    final l10n = AppLocalizations.of(context)!;
     if (_localRoutines.isEmpty) {
-      return const Center(child: Text('2. And then create a routine'));
+      return Center(child: Text(l10n.addRoutinePrompt));
     }
     return ListView.builder(
       itemCount: _localRoutines.length,
@@ -82,6 +86,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   }
 
   Widget _buildFirestoreRoutines(User user) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<QuerySnapshot>(
       stream:
           _firestore
@@ -91,7 +96,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
               .snapshots(),
       builder: (context, firestoreSnapshot) {
         if (firestoreSnapshot.hasError) {
-          return Center(child: Text('Error: ${firestoreSnapshot.error}'));
+          return Center(child: Text('${l10n.error}: ${firestoreSnapshot.error}'));
         }
 
         if (firestoreSnapshot.connectionState == ConnectionState.waiting) {

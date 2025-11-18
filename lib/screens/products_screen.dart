@@ -5,6 +5,8 @@ import 'package:carelog/database/database_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../l10n/app_localizations.dart';
+
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
 
@@ -27,13 +29,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges(),
       builder: (context, authSnapshot) {
         final user = authSnapshot.data;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('My Products')),
+          appBar: AppBar(title: Text(l10n.myProducts)),
           body:
               user == null
                   ? _localProducts.isEmpty &&
@@ -41,8 +44,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ConnectionState.waiting
                       ? const Center(child: CircularProgressIndicator())
                       : _localProducts.isEmpty
-                      ? const Center(
-                        child: Text('1. Start by adding some products'),
+                      ? Center(
+                        child: Text(l10n.addProductsPrompt),
                       )
                       : Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -93,7 +96,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
+                        return Center(child: Text('${l10n.error}: ${snapshot.error}'));
                       }
 
                       if (snapshot.connectionState == ConnectionState.waiting) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/routine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,13 +44,14 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     }
   }
 
-  String get _appBarTitle {
-    return widget.routine == null ? 'Add New Routine' : 'Edit Routine';
+  String _appBarTitle(AppLocalizations l10n) {
+    return widget.routine == null ? l10n.addNewRoutine : l10n.editRoutine;
   }
 
   final List<String> _frequencies = ['Daily', 'Weekly', 'Monthly', 'Custom'];
 
   void _saveRoutine() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -83,17 +85,82 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               .collection('routines')
               .doc(routineToSave.id) // Use routineToSave.id
               .set(routineToSave.toMap()); // Use routineToSave.toMap()
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Routine saved successfully!')),
-          );
-          Navigator.pop(context); // Go back after saving
-        } catch (e) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error saving routine: $e')));
+          ).showSnackBar(SnackBar(content: Text(l10n.routineSavedSuccess)));
+          Navigator.pop(context); // Go back after saving
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l10n.errorSavingRoutine}: $e')),
+          );
         }
       }
     }
+  }
+
+  void _deleteRoutine() async {
+    final l10n = AppLocalizations.of(context)!;
+    if (widget.routine == null) return;
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('routines')
+            .doc(widget.routine!.id)
+            .delete();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.routineDeletedSuccess)));
+        Navigator.pop(context); // Pop the edit screen
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.errorDeletingRoutine}: $e')),
+        );
+      }
+    } else {
+      // Handle local deletion
+      await DatabaseHelper().deleteRoutine(widget.routine!.id);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
+      Navigator.pop(context); // Pop the edit screen
+    }
+  }
+
+  Future<void> _showDeleteConfirmationDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.deleteRoutine),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[Text(l10n.deleteRoutineConfirmation)],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.cancel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(l10n.delete),
+              onPressed: () {
+                _deleteRoutine();
+                Navigator.of(context).pop(); // Pop the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _selectProducts() async {
@@ -116,8 +183,18 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(_appBarTitle)), // Use the dynamic title
+      appBar: AppBar(
+        title: Text(_appBarTitle(l10n)),
+        actions: [
+          if (widget.routine != null)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _showDeleteConfirmationDialog,
+            ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -126,10 +203,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             children: <Widget>[
               TextFormField(
                 initialValue: currentRoutine.name, // Pre-populate for editing
-                decoration: const InputDecoration(labelText: 'Routine Name'),
+                decoration: InputDecoration(labelText: l10n.routineName),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a routine name';
+                    return l10n.pleaseEnterRoutineName;
                   }
                   return null;
                 },
@@ -138,7 +215,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 },
               ),
               ListTile(
-                title: const Text('Select Products'),
+                title: Text(l10n.selectProducts),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: _selectProducts, // Call the _selectProducts method
               ),
@@ -148,11 +225,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        'Selected Products:',
-                        style: TextStyle(
+                        l10n.selectedProducts,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -177,7 +254,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 ),
               DropdownButtonFormField<String>(
                 value: currentRoutine.frequency, // Pre-populate for editing
-                decoration: const InputDecoration(labelText: 'Frequency'),
+                decoration: InputDecoration(labelText: l10n.frequency),
                 items:
                     _frequencies.map((String frequency) {
                       return DropdownMenuItem<String>(
@@ -198,7 +275,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               ),
               TextFormField(
                 initialValue: currentRoutine.notes, // Pre-populate for editing
-                decoration: const InputDecoration(labelText: 'Notes'),
+                decoration: InputDecoration(labelText: l10n.notes),
                 maxLines: 3,
                 onSaved: (value) {
                   currentRoutine.notes = value!;
@@ -209,7 +286,9 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 child: ElevatedButton(
                   onPressed: _saveRoutine,
                   child: Text(
-                    widget.routine == null ? 'Save Routine' : 'Update Routine',
+                    widget.routine == null
+                        ? l10n.saveRoutine
+                        : l10n.updateRoutine,
                   ), // Button text based on mode
                 ),
               ),
@@ -221,20 +300,22 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   void onSaveLocal(Routine routineToSave) async {
+    final l10n = AppLocalizations.of(context)!;
     await DatabaseHelper().insertRoutine(routineToSave);
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Routine saved locally!')));
+    ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
     Navigator.pop(context); // Go back after saving
   }
 
   void onUpdateLocal(Routine routineToSave) async {
+    final l10n = AppLocalizations.of(context)!;
     // Ensure the routineToSave has a valid ID for updating
     if (routineToSave.id.isNotEmpty) {
       await DatabaseHelper().updateRoutine(routineToSave);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Routine updated locally!')));
+      ).showSnackBar(SnackBar(content: Text(l10n.routineUpdatedLocally)));
       Navigator.pop(context); // Go back after updating
     }
   }

@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:carelog/models/routine.dart'; // Import Routine model
-import 'package:carelog/database/database_helper.dart'; // Import DatabaseHelper
+import 'package:carelog/database/database_helper.dart';
+
+import '../l10n/app_localizations.dart'; // Import DatabaseHelper
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -88,8 +90,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
+      appBar: AppBar(title: Text(l10n.calendar)),
       body: Column(
         children: [
           TableCalendar(
@@ -130,17 +133,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildUpcomingRoutinesList() {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedDay == null) {
-      return const Center(
-        child: Text('Select a day to see upcoming routines.'),
+      return Center(
+        child: Text(l10n.selectDayPrompt),
       );
     }
 
     final selectedDayRoutines = _routinesByDay[DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)] ?? [];
 
     if (selectedDayRoutines.isEmpty) {
-      return const Center(
-        child: Text('No routines scheduled for this day.'),
+      return Center(
+        child: Text(l10n.noRoutinesForDay),
       );
     }
 

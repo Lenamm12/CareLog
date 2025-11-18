@@ -6,7 +6,9 @@ import 'package:carelog/screens/add_routine_screen.dart';
 import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/products_screen.dart';
 import 'screens/routines_screen.dart';
 import 'screens/settings_screen.dart';
@@ -31,8 +33,18 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeNotifier>(
       builder: (context, theme, child) {
         return MaterialApp(
-          title: 'Flutter Demo',
+          title: 'My Skincare',
           theme: theme.currentTheme,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('de'), // German
+          ],
           home: const MainScreen(),
           onGenerateRoute: (settings) {
             switch (settings.name) {
@@ -86,22 +98,26 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.shelves), label: 'Products'),
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Routines',
+            icon: const Icon(Icons.shelves),
+            label: l10n.products,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
+            icon: const Icon(Icons.list_alt),
+            label: l10n.routines,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.calendar_today),
+            label: l10n.calendar,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings),
+            label: l10n.settings,
           ),
         ],
         currentIndex: _selectedIndex,

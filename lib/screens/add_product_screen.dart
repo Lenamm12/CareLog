@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/product.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -80,7 +81,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -112,15 +115,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       if (user == null) {
         final newProduct = Product(
-            name: _name,
-            brand: _brand,
-            type: _type,
-            purchaseDate: _purchaseDate,
-            price: double.tryParse(_price) ?? 0.0,
-            openingDate: _openingDate,
-            expiryPeriod: _expiryPeriod,
-            notes: _notes,
-            imagePath: imagePath);
+          name: _name,
+          brand: _brand,
+          type: _type,
+          purchaseDate: _purchaseDate,
+          price: double.tryParse(_price) ?? 0.0,
+          openingDate: _openingDate,
+          expiryPeriod: _expiryPeriod,
+          notes: _notes,
+          imagePath: imagePath,
+        );
         if (_isEditing) {
           await DatabaseHelper.instance.updateProduct(newProduct);
         } else {
@@ -128,11 +132,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
         }
       } else {
         // Check if the product exists in the general list
-        QuerySnapshot querySnapshot = await _firestore
-            .collection('products')
-            .where('name', isEqualTo: _name)
-            .where('brand', isEqualTo: _brand)
-            .get();
+        QuerySnapshot querySnapshot =
+            await _firestore
+                .collection('products')
+                .where('name', isEqualTo: _name)
+                .where('brand', isEqualTo: _brand)
+                .get();
 
         if (querySnapshot.docs.isEmpty) {
           // Add to general product list if it doesn't exist
@@ -145,16 +150,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
         if (_isEditing) {
           final updatedProduct = Product(
-              id: widget.product!.id,
-              name: _name,
-              brand: _brand,
-              type: _type,
-              purchaseDate: _purchaseDate,
-              price: double.tryParse(_price) ?? 0.0,
-              openingDate: _openingDate,
-              expiryPeriod: _expiryPeriod,
-              notes: _notes,
-              imagePath: imagePath);
+            id: widget.product!.id,
+            name: _name,
+            brand: _brand,
+            type: _type,
+            purchaseDate: _purchaseDate,
+            price: double.tryParse(_price) ?? 0.0,
+            openingDate: _openingDate,
+            expiryPeriod: _expiryPeriod,
+            notes: _notes,
+            imagePath: imagePath,
+          );
           await _firestore
               .collection('users')
               .doc(user.uid)
@@ -163,15 +169,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
               .update(updatedProduct.toMap());
         } else {
           final newProduct = Product(
-              name: _name,
-              brand: _brand,
-              type: _type,
-              purchaseDate: _purchaseDate,
-              price: double.tryParse(_price) ?? 0.0,
-              openingDate: _openingDate,
-              expiryPeriod: _expiryPeriod,
-              notes: _notes,
-              imagePath: imagePath);
+            name: _name,
+            brand: _brand,
+            type: _type,
+            purchaseDate: _purchaseDate,
+            price: double.tryParse(_price) ?? 0.0,
+            openingDate: _openingDate,
+            expiryPeriod: _expiryPeriod,
+            notes: _notes,
+            imagePath: imagePath,
+          );
 
           await _firestore
               .collection('users')
@@ -184,10 +191,70 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  void _deleteProduct() async {
+    if (!_isEditing) return;
+
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('products')
+          .doc(widget.product!.id)
+          .delete();
+    } else {
+      await DatabaseHelper.instance.deleteProduct(widget.product!.id!);
+    }
+    Navigator.pop(context); // Pop the edit screen
+  }
+
+  Future<void> _showDeleteConfirmationDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.deleteProduct),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[Text(l10n.deleteProductConfirmation)],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.cancel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(l10n.delete),
+              onPressed: () {
+                _deleteProduct();
+                Navigator.of(context).pop(); // Pop the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Product' : 'Add Product')),
+      appBar: AppBar(
+        title: Text(_isEditing ? l10n.editProduct : l10n.addProduct),
+        actions: [
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _showDeleteConfirmationDialog,
+            ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -199,9 +266,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null
-                      ? const Icon(Icons.add_a_photo, size: 50)
-                      : null,
+                  child:
+                      _image == null
+                          ? const Icon(Icons.add_a_photo, size: 50)
+                          : null,
                 ),
               ),
               const SizedBox(height: 16),
@@ -212,17 +280,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   }
                   return _generalProducts.where((Product option) {
                     return option.name.toLowerCase().contains(
-                          textEditingValue.text.toLowerCase(),
-                        );
+                      textEditingValue.text.toLowerCase(),
+                    );
                   });
                 },
-                displayStringForOption: (Product option) =>
-                    option.name +
-                    ' - ' +
-                    option.brand +
-                    "(" +
-                    option.type +
-                    ")",
+                displayStringForOption:
+                    (Product option) =>
+                        '${option.name} - ${option.brand} (${option.type})',
                 onSelected: (Product selection) {
                   setState(() {
                     _name = selection.name;
@@ -245,10 +309,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return TextFormField(
                     controller: textEditingController,
                     focusNode: focusNode,
-                    decoration: const InputDecoration(labelText: 'Name'),
+                    decoration: InputDecoration(labelText: l10n.productName),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a product name';
+                        return l10n.pleaseEnterName;
                       }
                       return null;
                     },
@@ -260,20 +324,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
               TextFormField(
                 controller: _brandController,
-                decoration: const InputDecoration(labelText: 'Brand'),
+                decoration: InputDecoration(labelText: l10n.brand),
                 onSaved: (value) {
                   _brand = value ?? '';
                 },
               ),
               TextFormField(
                 controller: _typeController,
-                decoration: const InputDecoration(labelText: 'Type'),
+                decoration: InputDecoration(labelText: l10n.type),
                 onSaved: (value) {
                   _type = value ?? '';
                 },
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Price'),
+                decoration: InputDecoration(labelText: l10n.price),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -284,35 +348,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
               ListTile(
                 title: Text(
-                  'Purchase Date: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
+                  '${l10n.purchaseDate}: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDate(context, _purchaseDate, (date) {
-                  setState(() {
-                    _purchaseDate = date;
-                  });
-                }),
+                onTap:
+                    () => _selectDate(context, _purchaseDate, (date) {
+                      setState(() {
+                        _purchaseDate = date;
+                      });
+                    }),
               ),
               ListTile(
                 title: Text(
-                  'Opening Date: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',
+                  '${l10n.openingDate}: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDate(context, _openingDate, (date) {
-                  setState(() {
-                    _openingDate = date;
-                  });
-                }),
+                onTap:
+                    () => _selectDate(context, _openingDate, (date) {
+                      setState(() {
+                        _openingDate = date;
+                      });
+                    }),
               ),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Expiry Period'),
+                decoration: InputDecoration(labelText: l10n.expiryPeriod),
                 value: _expiryPeriod,
-                items: _expiryPeriods.map((String period) {
-                  return DropdownMenuItem<String>(
-                    value: period,
-                    child: Text(period),
-                  );
-                }).toList(),
+                items:
+                    _expiryPeriods.map((String period) {
+                      return DropdownMenuItem<String>(
+                        value: period,
+                        child: Text(period),
+                      );
+                    }).toList(),
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
@@ -322,7 +389,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Notes'),
+                decoration: InputDecoration(labelText: l10n.notes),
                 maxLines: 3,
                 initialValue: _notes,
                 onSaved: (value) {
@@ -332,7 +399,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saveProduct,
-                child: Text(_isEditing ? 'Update Product' : 'Add Product'),
+                child: Text(_isEditing ? l10n.update : l10n.save),
               ),
             ],
           ),

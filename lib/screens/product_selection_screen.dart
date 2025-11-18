@@ -2,6 +2,7 @@ import 'package:carelog/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../l10n/app_localizations.dart';
 import '../models/product.dart';
 import 'add_product_screen.dart';
 
@@ -34,6 +35,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   }
 
   Future<void> _fetchUserProducts() async {
+    final l10n = AppLocalizations.of(context)!;
     final user = _auth.currentUser;
     if (user == null) {
       try {
@@ -44,7 +46,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         });
       } catch (e) {
         setState(() {
-          _error = 'Error fetching local products: $e';
+          _error = '${l10n.errorFetchingLocalProducts}: $e';
           _isLoading = false;
         });
       }
@@ -65,7 +67,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       });
     } catch (e) {
       setState(() {
-        _error = 'Error fetching products: $e';
+        _error = '${l10n.errorFetchingProducts}: $e';
         _isLoading = false;
       });
     }
@@ -96,9 +98,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Products'),
+        title: Text(l10n.selectProducts),
         actions: [
           IconButton(icon: const Icon(Icons.add), onPressed: _navigateToAddProduct),
           IconButton(icon: const Icon(Icons.save), onPressed: _saveSelection),
@@ -107,7 +110,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text('Error: $_error'))
+              ? Center(child: Text('${l10n.error}: $_error'))
               : ListView.builder(
                   itemCount: _userProducts.length,
                   itemBuilder: (context, index) {
