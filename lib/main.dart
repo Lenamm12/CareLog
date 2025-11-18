@@ -16,9 +16,12 @@ import 'screens/settings_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  final themeNotifier = ThemeNotifier();
+  await themeNotifier.loadTheme(); // Load the theme
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(),
+      create: (_) => themeNotifier,
       child: const MyApp(),
     ),
   );
@@ -27,7 +30,6 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
@@ -123,8 +125,7 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         backgroundColor: Colors.black,
-        selectedItemColor:
-            themeNotifier.isDarkMode ? Colors.white : Colors.black,
+        selectedItemColor: themeNotifier.isDarkMode ? Colors.white : Colors.black,
         unselectedItemColor: Colors.grey,
       ),
     );

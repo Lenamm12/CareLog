@@ -9,7 +9,8 @@ import 'product_selection_screen.dart'; // Import the new screen
 
 class AddRoutineScreen extends StatefulWidget {
   final Routine? routine;
-  const AddRoutineScreen({super.key, this.routine});
+  final VoidCallback? onRoutineSaved;
+  const AddRoutineScreen({super.key, this.routine, this.onRoutineSaved});
 
   @override
   State<AddRoutineScreen> createState() => _AddRoutineScreenState();
@@ -88,13 +89,16 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(l10n.routineSavedSuccess)));
-          Navigator.pop(context); // Go back after saving
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${l10n.errorSavingRoutine}: $e')),
           );
         }
       }
+      if (widget.onRoutineSaved != null) {
+        widget.onRoutineSaved!();
+      }
+      Navigator.pop(context); // Go back after saving
     }
   }
 
@@ -114,7 +118,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.routineDeletedSuccess)));
-        Navigator.pop(context); // Pop the edit screen
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${l10n.errorDeletingRoutine}: $e')),
@@ -126,8 +129,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
-      Navigator.pop(context); // Pop the edit screen
     }
+    if (widget.onRoutineSaved != null) {
+      widget.onRoutineSaved!();
+    }
+    Navigator.pop(context); // Pop the edit screen
   }
 
   Future<void> _showDeleteConfirmationDialog() async {
@@ -305,7 +311,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
-    Navigator.pop(context); // Go back after saving
   }
 
   void onUpdateLocal(Routine routineToSave) async {
@@ -316,7 +321,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.routineUpdatedLocally)));
-      Navigator.pop(context); // Go back after updating
     }
   }
 }

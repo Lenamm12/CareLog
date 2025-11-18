@@ -10,8 +10,9 @@ import '../database/database_helper.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Product? product;
+  final VoidCallback? onProductSaved;
 
-  const AddProductScreen({super.key, this.product});
+  const AddProductScreen({super.key, this.product, this.onProductSaved});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -115,6 +116,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       if (user == null) {
         final newProduct = Product(
+          id: _isEditing ? widget.product!.id : null,
           name: _name,
           brand: _brand,
           type: _type,
@@ -187,6 +189,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
               .add(newProduct.toMap());
         }
       }
+      if (widget.onProductSaved != null) {
+        widget.onProductSaved!();
+      }
       Navigator.pop(context);
     }
   }
@@ -204,6 +209,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
           .delete();
     } else {
       await DatabaseHelper.instance.deleteProduct(widget.product!.id!);
+    }
+    if (widget.onProductSaved != null) {
+      widget.onProductSaved!();
     }
     Navigator.pop(context); // Pop the edit screen
   }
@@ -273,55 +281,69 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Autocomplete<Product>(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text == '') {
-                    return const Iterable<Product>.empty();
-                  }
-                  return _generalProducts.where((Product option) {
-                    return option.name.toLowerCase().contains(
-                      textEditingValue.text.toLowerCase(),
+              if (_isEditing)
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: l10n.productName),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.pleaseEnterName;
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _name = value!;
+                  },
+                )
+              else
+                Autocomplete<Product>(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text == '') {
+                      return const Iterable<Product>.empty();
+                    }
+                    return _generalProducts.where((Product option) {
+                      return option.name.toLowerCase().contains(
+                        textEditingValue.text.toLowerCase(),
+                      );
+                    });
+                  },
+                  displayStringForOption: (Product option) =>
+                      '${option.name} - ${option.brand} (${option.type})',
+                  onSelected: (Product selection) {
+                    setState(() {
+                      _name = selection.name;
+                      _brand = selection.brand;
+                      _type = selection.type;
+                      _nameController.text = _name;
+                      _brandController.text = _brand;
+                      _typeController.text = _type;
+                    });
+                  },
+                  fieldViewBuilder: (
+                    BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted,
+                  ) {
+                    _nameController.addListener(() {
+                      textEditingController.value = _nameController.value;
+                    });
+                    return TextFormField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(labelText: l10n.productName),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.pleaseEnterName;
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _name = value!;
+                      },
                     );
-                  });
-                },
-                displayStringForOption:
-                    (Product option) =>
-                        '${option.name} - ${option.brand} (${option.type})',
-                onSelected: (Product selection) {
-                  setState(() {
-                    _name = selection.name;
-                    _brand = selection.brand;
-                    _type = selection.type;
-                    _nameController.text = _name;
-                    _brandController.text = _brand;
-                    _typeController.text = _type;
-                  });
-                },
-                fieldViewBuilder: (
-                  BuildContext context,
-                  TextEditingController textEditingController,
-                  FocusNode focusNode,
-                  VoidCallback onFieldSubmitted,
-                ) {
-                  _nameController.addListener(() {
-                    textEditingController.value = _nameController.value;
-                  });
-                  return TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(labelText: l10n.productName),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.pleaseEnterName;
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _name = value!;
-                    },
-                  );
-                },
-              ),
+                  },
+                ),
               TextFormField(
                 controller: _brandController,
                 decoration: InputDecoration(labelText: l10n.brand),

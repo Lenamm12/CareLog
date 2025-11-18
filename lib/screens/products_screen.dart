@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../l10n/app_localizations.dart';
+import 'add_product_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -17,148 +18,95 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<Product> _localProducts = [];
+  List<Product> _products = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadLocalProducts(); // Load local products initially
+    _auth.authStateChanges().listen((user) {
+      _loadProducts();
+    });
+    _loadProducts(); // Initial load
   }
 
-  // User? get currentUser => _auth.currentUser; // We'll use the StreamBuilder's data
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      final localProducts = await DatabaseHelper.instance.getProducts();
+      setState(() {
+        _products = localProducts;
+        _isLoading = false;
+      });
+    } else {
+      try {
+        final snapshot = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .get();
+        final firestoreProducts = snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+        setState(() {
+          _products = firestoreProducts;
+          _isLoading = false;
+        });
+      } catch (e) {
+        // Handle error
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _navigateToAddProduct([Product? product]) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddProductScreen(
+          product: product,
+          onProductSaved: _loadProducts,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return StreamBuilder<User?>(
-      stream: _auth.authStateChanges(),
-      builder: (context, authSnapshot) {
-        final user = authSnapshot.data;
-
-        return Scaffold(
-          appBar: AppBar(title: Text(l10n.myProducts)),
-          body:
-              user == null
-                  ? _localProducts.isEmpty &&
-                          authSnapshot.connectionState ==
-                              ConnectionState.waiting
-                      ? const Center(child: CircularProgressIndicator())
-                      : _localProducts.isEmpty
-                      ? Center(
-                        child: Text(l10n.addProductsPrompt),
-                      )
-                      : Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: _localProducts.length,
-                                itemBuilder: (context, index) {
-                                  return ListTile(
-                                    leading:
-                                        _localProducts[index].imagePath !=
-                                                    null &&
-                                                _localProducts[index]
-                                                    .imagePath!
-                                                    .isNotEmpty
-                                            ? Image.file(
-                                              File(
-                                                _localProducts[index]
-                                                    .imagePath!,
-                                              ),
-                                            )
-                                            : null,
-                                    title: Text(
-                                      _localProducts[index].name,
-                                    ), // Assuming imagePath is a URL for Firestore
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/add_product',
-                                        arguments: _localProducts[index],
-                                      ); // Pass the tapped product for editing
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                  : StreamBuilder<QuerySnapshot>(
-                    stream:
-                        _firestore
-                            .collection('users')
-                            .doc(user.uid)
-                            .collection('products')
-                            .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Center(child: Text('${l10n.error}: ${snapshot.error}'));
-                      }
-
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final products =
-                          snapshot.data!.docs.map((doc) {
-                            return Product.fromFirestore(doc);
-                          }).toList();
-
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: products.length,
-                                itemBuilder: (context, index) {
-                                  return ListTile(
-                                    leading:
-                                        products[index].imagePath != null
-                                            ? Image.network(
-                                              products[index].imagePath!,
-                                            ) // Assuming imagePath is a URL for Firestore
-                                            : null, // Handle no image case
-                                    title: Text(
-                                      products[index].name,
-                                    ), // Assuming imagePath is a URL for Firestore
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/add_product',
-                                        arguments: products[index],
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'addProduct',
-            onPressed: () {
-              Navigator.pushNamed(context, '/add_product');
-            },
-            child: const Icon(Icons.add),
-          ),
-        );
-      },
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.myProducts)),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _products.isEmpty
+              ? Center(
+                  child: Text(l10n.addProductsPrompt),
+                )
+              : ListView.builder(
+                  itemCount: _products.length,
+                  itemBuilder: (context, index) {
+                    final product = _products[index];
+                    return ListTile(
+                      leading: product.imagePath != null && product.imagePath!.isNotEmpty
+                          ? (product.imagePath!.startsWith('http')
+                              ? Image.network(product.imagePath!)
+                              : Image.file(File(product.imagePath!)))
+                          : null,
+                      title: Text(product.name),
+                      subtitle: Text('${product.brand} - ${product.type}'),
+                      onTap: () => _navigateToAddProduct(product),
+                    );
+                  },
+                ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'addProduct',
+        onPressed: () => _navigateToAddProduct(),
+        child: const Icon(Icons.add),
+      ),
     );
-  }
-
-  Future<void> _loadLocalProducts() async {
-    final products = await DatabaseHelper.instance.getProducts();
-    setState(() {
-      _localProducts = products;
-    });
   }
 }
