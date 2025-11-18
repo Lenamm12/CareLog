@@ -1,9 +1,3 @@
-import 'package:carelog/models/product.dart';
-import 'package:carelog/models/routine.dart';
-import 'package:carelog/models/theme_notifier.dart';
-import 'package:carelog/screens/add_product_screen.dart';
-import 'package:carelog/screens/add_routine_screen.dart';
-import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,18 +6,15 @@ import 'l10n/app_localizations.dart';
 import 'screens/products_screen.dart';
 import 'screens/routines_screen.dart';
 import 'screens/settings_screen.dart';
+import 'models/theme_notifier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final themeNotifier = ThemeNotifier();
-  await themeNotifier.loadTheme(); // Load the theme
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => themeNotifier,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider(create: (_) => themeNotifier, child: const MyApp()),
   );
 }
 
@@ -33,10 +24,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
-      builder: (context, theme, child) {
+      builder: (context, themeNotifier, child) {
         return MaterialApp(
-          title: 'My Skincare',
-          theme: theme.currentTheme,
+          title: 'Carelog',
+          theme: themeNotifier.currentTheme,
+          home: const MainScreen(),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -44,30 +36,9 @@ class MyApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: const [
-            Locale('en'), // English
-            Locale('de'), // German
+            Locale('en', ''), // English, no country code
+            Locale('de', ''), // German, no country code
           ],
-          home: const MainScreen(),
-          onGenerateRoute: (settings) {
-            switch (settings.name) {
-              case '/add_product':
-                final args = settings.arguments as Product?;
-                return MaterialPageRoute(
-                  builder: (context) {
-                    return AddProductScreen(product: args);
-                  },
-                );
-              case '/add_routine':
-                final args = settings.arguments as Routine?;
-                return MaterialPageRoute(
-                  builder: (context) {
-                    return AddRoutineScreen(routine: args);
-                  },
-                );
-              default:
-                return null;
-            }
-          },
         );
       },
     );
@@ -84,11 +55,10 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const ProductsScreen(),
-    const RoutinesScreen(),
-    const CalendarScreen(),
-    const SettingsScreen(),
+  static const List<Widget> _widgetOptions = <Widget>[
+    ProductsScreen(),
+    RoutinesScreen(),
+    SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -99,35 +69,35 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.shelves),
-            label: l10n.products,
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return Scaffold(
+          body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+          bottomNavigationBar: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_bag),
+                label: 'Products',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.list),
+                label: 'Routines',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            backgroundColor:
+                themeNotifier.isDarkMode ? Colors.black : Colors.white,
+            selectedItemColor:
+                themeNotifier.isDarkMode ? Colors.white : Colors.black,
+            unselectedItemColor: Colors.grey,
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.list_alt),
-            label: l10n.routines,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today),
-            label: l10n.calendar,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings),
-            label: l10n.settings,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.black,
-        selectedItemColor: themeNotifier.isDarkMode ? Colors.white : Colors.black,
-        unselectedItemColor: Colors.grey,
-      ),
+        );
+      },
     );
   }
 }
