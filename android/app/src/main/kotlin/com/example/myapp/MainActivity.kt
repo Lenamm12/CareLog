@@ -1,4 +1,4 @@
-package de.lenazeise.carelog
+package de.jelestudios.carelog
 
 import io.flutter.embedding.android.FlutterActivity
 

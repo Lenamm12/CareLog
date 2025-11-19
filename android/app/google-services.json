@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:355454719687:android:4a06af435d7e11b05310e2",
+        "mobilesdk_app_id": "1:355454719687:android:2cb6350329759d5b5310e2",
         "android_client_info": {
-          "package_name": "de.lenazeise.carelog"
+          "package_name": "de.jelestudios.carelog"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "355454719687-j2nqnaigt6o24dcgi3qfnroeahlp7jid.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBMGVGLI_wmXp-LQnrmw-KO27HmqCqZqH4"
@@ -20,7 +25,41 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "355454719687-j2nqnaigt6o24dcgi3qfnroeahlp7jid.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355454719687:android:4a06af435d7e11b05310e2",
+        "android_client_info": {
+          "package_name": "de.lenazeise.carelog"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "355454719687-j2nqnaigt6o24dcgi3qfnroeahlp7jid.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMGVGLI_wmXp-LQnrmw-KO27HmqCqZqH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "355454719687-j2nqnaigt6o24dcgi3qfnroeahlp7jid.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

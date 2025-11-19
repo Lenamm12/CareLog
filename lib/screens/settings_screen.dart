@@ -29,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void rateApp() async {
     final Uri url = Uri.parse(
-      'https://play.google.com/store/apps/details?id=de.lenazeise.carelog',
+      'https://play.google.com/store/apps/details?id=de.jelestudios.carelog',
     );
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
