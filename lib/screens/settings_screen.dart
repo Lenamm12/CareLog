@@ -1,10 +1,11 @@
-import 'package:carelog/models/theme_notifier.dart';
+import 'package:carelog/notifiers/theme_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:carelog/services/auth_service.dart'; // Import the AuthService
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
+import 'language_selection_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -93,6 +94,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             l10n.personalization,
             style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LanguageSelectionScreen(),
+                ),
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.language),
           ),
           const SizedBox(height: 20),
           Text(

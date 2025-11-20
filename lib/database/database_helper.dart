@@ -6,14 +6,17 @@ import '../models/routine.dart';
 import '../models/product.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._();
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
 
-  DatabaseHelper._();
+  DatabaseHelper._internal();
 
   factory DatabaseHelper() {
     return _instance;
   }
+
+  static DatabaseHelper get instance => _instance;
+
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -23,7 +26,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'carelog_app.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -46,53 +49,34 @@ class DatabaseHelper {
       CREATE TABLE routines(
         id TEXT PRIMARY KEY,
         name TEXT,
- frequency TEXT,
- productIds TEXT,
-        notes TEXT
+        frequency TEXT,
+        productIds TEXT,
+        notes TEXT,
+        lastDone INTEGER
       )
     ''');
   }
 
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE routines ADD COLUMN lastDone INTEGER');
+    }
+  }
+
   Future<int> insertProduct(Product product) async {
     final db = await database;
-    final map = {
-      'id': product.id,
-      'name': product.name,
-      'brand': product.brand,
-      'type': product.type,
-      'purchaseDate': product.purchaseDate?.millisecondsSinceEpoch,
-      'price': product.price,
-      'openingDate': product.openingDate?.millisecondsSinceEpoch,
-      'expiryPeriod': product.expiryPeriod,
-      'expiryDate': product.expiryDate?.millisecondsSinceEpoch,
-      'imagePath': product.imagePath,
-      'notes': product.notes,
-    };
     return await db.insert(
       'products',
-      map,
+      product.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<int> updateProduct(Product product) async {
     final db = await database;
-    final map = {
-      'id': product.id,
-      'name': product.name,
-      'brand': product.brand,
-      'type': product.type,
-      'purchaseDate': product.purchaseDate?.millisecondsSinceEpoch,
-      'price': product.price,
-      'openingDate': product.openingDate?.millisecondsSinceEpoch,
-      'expiryPeriod': product.expiryPeriod,
-      'expiryDate': product.expiryDate?.millisecondsSinceEpoch,
-      'imagePath': product.imagePath,
-      'notes': product.notes,
-    };
     return await db.update(
       'products',
-      map,
+      product.toMap(),
       where: 'id = ?',
       whereArgs: [product.id],
     );
@@ -111,53 +95,43 @@ class DatabaseHelper {
     return await db.delete('products', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Placeholder methods for routines
   Future<int> insertRoutine(Routine routine) async {
     final db = await database;
-    final map = {
-      'id': routine.id,
-      'name': routine.name,
-      'frequency': routine.frequency,
-      'productIds': jsonEncode(
-        routine.products?.map((p) => p.id).toList() ?? [],
-      ),
-      'notes': routine.notes,
-    };
     return await db.insert(
       'routines',
-      map,
+      routine.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<List<Routine>> getRoutines() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('routines');
-    return List.generate(maps.length, (i) {
-      final routineMap = maps[i];
+    final List<Map<String, dynamic>> routineMaps = await db.query('routines');
+    final List<Routine> routines = [];
+
+    for (var routineMap in routineMaps) {
       final productIdsString = routineMap['productIds'] as String?;
-      List<String> productIds = [];
+      List<Product> products = [];
       if (productIdsString != null) {
-        productIds = List<String>.from(jsonDecode(productIdsString));
+        final productIds = List<String>.from(jsonDecode(productIdsString));
+        for (var productId in productIds) {
+          final productMaps = await db.query('products', where: 'id = ?', whereArgs: [productId]);
+          if (productMaps.isNotEmpty) {
+            products.add(Product.fromMap(productMaps.first));
+          }
+        }
       }
-      return Routine.fromMap(routineMap, productIds: productIds);
-    });
+      routines.add(Routine.fromMap(routineMap, products));
+    }
+    return routines;
   }
+
 
   Future<int> updateRoutine(Routine routine) async {
     final db = await database;
-    final map = {
-      'id': routine.id,
-      'name': routine.name,
-      'frequency': routine.frequency,
-      'productIds': jsonEncode(
-        routine.products?.map((p) => p.id).toList() ?? [],
-      ),
-      'notes': routine.notes,
-    };
     return await db.update(
       'routines',
-      map,
+      routine.toMap(),
       where: 'id = ?',
       whereArgs: [routine.id],
     );
@@ -167,7 +141,4 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete('routines', where: 'id = ?', whereArgs: [id]);
   }
-
-  // You can add methods for updating data as well
-  static DatabaseHelper get instance => _instance;
 }

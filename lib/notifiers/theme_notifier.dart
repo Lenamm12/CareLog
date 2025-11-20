@@ -10,9 +10,7 @@ class ThemeNotifier with ChangeNotifier {
   String get colorScheme => _colorScheme;
   bool get isDarkMode => _isDarkMode;
 
-  ThemeNotifier() {
-    _loadTheme();
-  }
+  ThemeNotifier();
 
   ThemeData get currentTheme {
     ThemeData baseTheme = _isDarkMode ? ThemeData.dark() : ThemeData.light();
@@ -135,7 +133,7 @@ class ThemeNotifier with ChangeNotifier {
     prefs.setBool('isDarkMode', _isDarkMode);
   }
 
-  _loadTheme() async {
+  Future<void> loadTheme() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _fontSize = prefs.getDouble('fontSize') ?? 16.0;
     _colorScheme = prefs.getString('colorScheme') ?? 'Pink';

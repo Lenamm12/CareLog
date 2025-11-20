@@ -1,6 +1,10 @@
 {
   "products": "Products",
   "routines": "Routines",
+  "language": "Langauge",
+  "selectLanguage": "Select Language",
+  "english": "English",
+  "german": "German",
   "add": "Add",
   "addProduct": "Add Product",
   "addNewRoutine": "Add New Routine",

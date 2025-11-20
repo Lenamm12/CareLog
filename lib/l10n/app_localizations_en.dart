@@ -15,6 +15,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routines => 'Routines';
 
   @override
+  String get language => 'Langauge';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get german => 'German';
+
+  @override
   String get add => 'Add';
 
   @override

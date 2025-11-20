@@ -1,18 +1,15 @@
-import 'package:carelog/database/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../l10n/app_localizations.dart';
 import '../models/product.dart';
-import 'add_product_screen.dart';
+import '../database/database_helper.dart';
+import '../l10n/app_localizations.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
   final List<Product> initialSelectedProducts;
 
-  const ProductSelectionScreen({
-    super.key,
-    this.initialSelectedProducts = const [],
-  });
+  const ProductSelectionScreen(
+      {super.key, required this.initialSelectedProducts});
 
   @override
   State<ProductSelectionScreen> createState() => _ProductSelectionScreenState();
@@ -21,79 +18,64 @@ class ProductSelectionScreen extends StatefulWidget {
 class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  List<Product> _userProducts = [];
-  List<Product> _selectedProducts = [];
+  List<Product> _allProducts = [];
+  final List<Product> _selectedProducts = [];
   bool _isLoading = true;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _selectedProducts = List.from(widget.initialSelectedProducts);
-    _fetchUserProducts();
+    _selectedProducts.addAll(widget.initialSelectedProducts);
+    _loadProducts();
   }
 
-  Future<void> _fetchUserProducts() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _loadProducts() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
     final user = _auth.currentUser;
     if (user == null) {
-      try {
-        final localProducts = await DatabaseHelper.instance.getProducts();
+      final localProducts = await DatabaseHelper.instance.getProducts();
+      if (mounted) {
         setState(() {
-          _userProducts = localProducts;
-          _isLoading = false;
-        });
-      } catch (e) {
-        setState(() {
-          _error = '${l10n.errorFetchingLocalProducts}: $e';
+          _allProducts = localProducts;
           _isLoading = false;
         });
       }
-      return;
-    }
-
-    try {
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('products')
-          .get();
-
-      setState(() {
-        _userProducts =
+    } else {
+      try {
+        final snapshot = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .get();
+        final firestoreProducts =
             snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = '${l10n.errorFetchingProducts}: $e';
-        _isLoading = false;
-      });
+        if (mounted) {
+          setState(() {
+            _allProducts = firestoreProducts;
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
-  void _toggleProductSelection(Product product) {
+  void _onProductSelected(Product product, bool isSelected) {
     setState(() {
-      if (_selectedProducts.any((p) => p.id == product.id)) {
-        _selectedProducts.removeWhere((p) => p.id == product.id);
-      } else {
+      if (isSelected) {
         _selectedProducts.add(product);
+      } else {
+        _selectedProducts.removeWhere((p) => p.id == product.id);
       }
     });
-  }
-
-  void _saveSelection() {
-    Navigator.pop(context, _selectedProducts);
-  }
-
-  void _navigateToAddProduct() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddProductScreen()),
-    );
-    // Refresh the product list after adding a new one
-    _fetchUserProducts();
   }
 
   @override
@@ -103,29 +85,30 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
       appBar: AppBar(
         title: Text(l10n.selectProducts),
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _navigateToAddProduct),
-          IconButton(icon: const Icon(Icons.save), onPressed: _saveSelection),
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: () => Navigator.pop(context, _selectedProducts),
+          ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('${l10n.error}: $_error'))
-              : ListView.builder(
-                  itemCount: _userProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = _userProducts[index];
-                    final isSelected = _selectedProducts.any((p) => p.id == product.id);
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (bool? value) {
-                        _toggleProductSelection(product);
-                      },
-                      title: Text(product.name),
-                      subtitle: Text(product.brand),
-                    );
+          : ListView.builder(
+              itemCount: _allProducts.length,
+              itemBuilder: (context, index) {
+                final product = _allProducts[index];
+                final isSelected = _selectedProducts.any((p) => p.id == product.id);
+                return CheckboxListTile(
+                  title: Text(product.name),
+                  value: isSelected,
+                  onChanged: (bool? value) {
+                    if (value != null) {
+                      _onProductSelected(product, value);
+                    }
                   },
-                ),
+                );
+              },
+            ),
     );
   }
 }

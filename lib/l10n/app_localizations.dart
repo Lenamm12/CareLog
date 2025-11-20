@@ -107,6 +107,30 @@ abstract class AppLocalizations {
   /// **'Routines'**
   String get routines;
 
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Langauge'**
+  String get language;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @german.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get german;
+
   /// No description provided for @add.
   ///
   /// In en, this message translates to:

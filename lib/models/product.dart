@@ -1,22 +1,20 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class Product {
-  String id; // Unique ID for each product
-  String name;
-  String brand;
-  String type;
-  DateTime? purchaseDate;
-  double? price;
-  DateTime? openingDate;
-  String? expiryPeriod;
-  DateTime? expiryDate;
-  String? imagePath; // Nullable field for image path
-  String? notes;
+  String? id;
+  final String name;
+  final String brand;
+  final String type;
+  final DateTime? purchaseDate;
+  final double? price;
+  final DateTime? openingDate;
+  final String? expiryPeriod;
+  final String? notes;
+  final String? imagePath;
 
   Product({
-    String? id,
+    this.id,
     required this.name,
     required this.brand,
     required this.type,
@@ -24,99 +22,71 @@ class Product {
     this.price,
     this.openingDate,
     this.expiryPeriod,
-    this.expiryDate,
     this.notes,
     this.imagePath,
-  }) : id = id ?? const Uuid().v4() {
-    if (openingDate != null && expiryPeriod != null) {
-      expiryDate = calculateExpiryDate(openingDate!, expiryPeriod!);
-    }
+  }) {
+    id ??= const Uuid().v4();
   }
 
-  static DateTime calculateExpiryDate(
-    DateTime openingDate,
-    String expiryPeriod,
-  ) {
-    int monthsToAdd = 0;
-    final parts = expiryPeriod.toLowerCase().split(' ');
-    if (parts.length == 2) {
-      final value = int.tryParse(parts[0]);
-      if (value != null) {
-        if (parts[1].contains('month')) {
-          monthsToAdd = value;
-        } else if (parts[1].contains('year')) {
-          monthsToAdd = value * 12;
-        }
-      }
+  DateTime? get expiryDate {
+    if (openingDate == null || expiryPeriod == null) {
+      return null;
     }
-
+    final months = int.tryParse(expiryPeriod!.split(' ').first) ?? 0;
     return DateTime(
-      openingDate.year,
-      openingDate.month + monthsToAdd,
-      openingDate.day,
+      openingDate!.year,
+      openingDate!.month + months,
+      openingDate!.day,
     );
   }
 
   factory Product.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Product(
       id: doc.id,
       name: data['name'] ?? '',
       brand: data['brand'] ?? '',
       type: data['type'] ?? '',
-      purchaseDate:
-          data['purchaseDate'] != null
-              ? (data['purchaseDate'] as Timestamp).toDate()
-              : null,
-      price: (data['price'] ?? 0.0).toDouble(),
-      openingDate:
-          data['openingDate'] != null
-              ? (data['openingDate'] as Timestamp).toDate()
-              : null,
+      purchaseDate: (data['purchaseDate'] as Timestamp?)?.toDate(),
+      price: (data['price'] as num?)?.toDouble(),
+      openingDate: (data['openingDate'] as Timestamp?)?.toDate(),
       expiryPeriod: data['expiryPeriod'],
-      expiryDate:
-          data['expiryDate'] != null
-              ? (data['expiryDate'] as Timestamp).toDate()
-              : null,
       notes: data['notes'],
       imagePath: data['imagePath'],
     );
   }
 
+  factory Product.fromMap(Map<String, dynamic> map) {
+    return Product(
+      id: map['id'] as String?,
+      name: map['name'] as String,
+      brand: map['brand'] as String,
+      type: map['type'] as String,
+      purchaseDate: map['purchaseDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['purchaseDate'] as int)
+          : null,
+      price: map['price'] as double?,
+      openingDate: map['openingDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['openingDate'] as int)
+          : null,
+      expiryPeriod: map['expiryPeriod'] as String?,
+      notes: map['notes'] as String?,
+      imagePath: map['imagePath'] as String?,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'brand': brand,
       'type': type,
-      'purchaseDate': purchaseDate,
+      'purchaseDate': purchaseDate?.millisecondsSinceEpoch,
       'price': price,
-      'openingDate': openingDate,
+      'openingDate': openingDate?.millisecondsSinceEpoch,
       'expiryPeriod': expiryPeriod,
-      'expiryDate': expiryDate,
       'notes': notes,
       'imagePath': imagePath,
     };
-  }
-
-  static Product fromMap(Map<String, dynamic> map) {
-    return Product(
-      id: map['id'],
-      name: map['name'],
-      brand: map['brand'],
-      type: map['type'],
-      purchaseDate: map['purchaseDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['purchaseDate'])
-          : null,
-      price: map['price'],
-      openingDate: map['openingDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['openingDate'])
-          : null,
-      expiryPeriod: map['expiryPeriod'],
-      expiryDate: map['expiryDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['expiryDate'])
-          : null,
-      notes: map['notes'],
-      imagePath: map['imagePath'],
-    );
   }
 }

@@ -125,7 +125,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       }
     } else {
       // Handle local deletion
-      await DatabaseHelper().deleteRoutine(widget.routine!.id);
+      await DatabaseHelper.instance.deleteRoutine(widget.routine!.id);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
@@ -173,10 +173,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     final selectedProducts = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ProductSelectionScreen(
-              initialSelectedProducts: currentRoutine.products ?? [],
-            ),
+        builder: (context) =>
+            ProductSelectionScreen(initialSelectedProducts: currentRoutine.products ?? []),
       ),
     );
 
@@ -248,10 +246,9 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                       itemBuilder: (context, index) {
                         final product = currentRoutine.products![index];
                         return ListTile(
-                          leading:
-                              product.imagePath != null
-                                  ? Image.network(product.imagePath!)
-                                  : null, // Display image if available
+                          leading: product.imagePath != null
+                              ? Image.network(product.imagePath!)
+                              : null, // Display image if available
                           title: Text(product.name),
                         );
                       },
@@ -261,13 +258,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               DropdownButtonFormField<String>(
                 value: currentRoutine.frequency, // Pre-populate for editing
                 decoration: InputDecoration(labelText: l10n.frequency),
-                items:
-                    _frequencies.map((String frequency) {
-                      return DropdownMenuItem<String>(
-                        value: frequency,
-                        child: Text(frequency),
-                      );
-                    }).toList(),
+                items: _frequencies.map((String frequency) {
+                  return DropdownMenuItem<String>(
+                    value: frequency,
+                    child: Text(frequency),
+                  );
+                }).toList(),
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
@@ -307,7 +303,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   void onSaveLocal(Routine routineToSave) async {
     final l10n = AppLocalizations.of(context)!;
-    await DatabaseHelper().insertRoutine(routineToSave);
+    await DatabaseHelper.instance.insertRoutine(routineToSave);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.routineSavedLocally)));
@@ -317,7 +313,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     final l10n = AppLocalizations.of(context)!;
     // Ensure the routineToSave has a valid ID for updating
     if (routineToSave.id.isNotEmpty) {
-      await DatabaseHelper().updateRoutine(routineToSave);
+      await DatabaseHelper.instance.updateRoutine(routineToSave);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.routineUpdatedLocally)));

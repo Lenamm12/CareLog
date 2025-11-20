@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
@@ -55,7 +56,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _brand = widget.product!.brand;
       _type = widget.product!.type;
       _purchaseDate = widget.product!.purchaseDate ?? DateTime.now();
-      _price = widget.product!.price?.toString() ?? '';
+      _price = widget.product!.price?.toString().replaceAll('.', ',') ?? '';
       _openingDate = widget.product!.openingDate ?? DateTime.now();
       _expiryPeriod = widget.product!.expiryPeriod ?? '6 months';
       _notes = widget.product!.notes ?? '';
@@ -102,6 +103,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       initialDate: initialDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      locale: Localizations.localeOf(context),
     );
     if (picked != null && picked != initialDate) {
       onDateSelected(picked);
@@ -114,6 +116,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final user = _auth.currentUser;
       final imagePath = _image?.path;
 
+      final format = NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode);
+      final price = format.parse(_price).toDouble();
+
       if (user == null) {
         final newProduct = Product(
           id: _isEditing ? widget.product!.id : null,
@@ -121,7 +126,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           brand: _brand,
           type: _type,
           purchaseDate: _purchaseDate,
-          price: double.tryParse(_price) ?? 0.0,
+          price: price,
           openingDate: _openingDate,
           expiryPeriod: _expiryPeriod,
           notes: _notes,
@@ -157,7 +162,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             brand: _brand,
             type: _type,
             purchaseDate: _purchaseDate,
-            price: double.tryParse(_price) ?? 0.0,
+            price: price,
             openingDate: _openingDate,
             expiryPeriod: _expiryPeriod,
             notes: _notes,
@@ -175,7 +180,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             brand: _brand,
             type: _type,
             purchaseDate: _purchaseDate,
-            price: double.tryParse(_price) ?? 0.0,
+            price: price,
             openingDate: _openingDate,
             expiryPeriod: _expiryPeriod,
             notes: _notes,
@@ -252,6 +257,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final format = NumberFormat.currency(locale: Localizations.localeOf(context).languageCode);
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? l10n.editProduct : l10n.addProduct),
@@ -359,10 +365,24 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: l10n.price),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                decoration: InputDecoration(
+                  labelText: l10n.price,
+                  suffixText: format.currencySymbol,
                 ),
+                keyboardType: TextInputType.numberWithOptions(
+                  decimal: true,
+                  signed: false,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    final text = newValue.text.replaceAll('.', ',');
+                    return TextEditingValue(
+                      text: text,
+                      selection: TextSelection.collapsed(offset: text.length),
+                    );
+                  }),
+                ],
                 initialValue: _price,
                 onSaved: (value) {
                   _price = value!;
@@ -370,7 +390,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
               ListTile(
                 title: Text(
-                  '${l10n.purchaseDate}: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
+                  '${l10n.purchaseDate}: ${DateFormat.yMd(Localizations.localeOf(context).languageCode).format(_purchaseDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap:
@@ -382,7 +402,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
               ListTile(
                 title: Text(
-                  '${l10n.openingDate}: ${DateFormat('yyyy-MM-dd').format(_openingDate)}',
+                  '${l10n.openingDate}: ${DateFormat.yMd(Localizations.localeOf(context).languageCode).format(_openingDate)}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap:

@@ -1,20 +1,29 @@
+import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
+import 'notifiers/locale_notifier.dart';
 import 'screens/products_screen.dart';
 import 'screens/routines_screen.dart';
 import 'screens/settings_screen.dart';
-import 'models/theme_notifier.dart';
+import 'notifiers/theme_notifier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final themeNotifier = ThemeNotifier();
+  await themeNotifier.loadTheme();
 
   runApp(
-    ChangeNotifierProvider(create: (_) => themeNotifier, child: const MyApp()),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(create: (_) => LocaleNotifier()),
+      ],
+      child: const MyApp(),
+    ),
   );
 }
 
@@ -58,6 +67,7 @@ class _MainScreenState extends State<MainScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     ProductsScreen(),
     RoutinesScreen(),
+    CalendarScreen(),
     SettingsScreen(),
   ];
 
@@ -69,23 +79,28 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
+    final l10n = AppLocalizations.of(context)!;
+    return Consumer2<ThemeNotifier, LocaleNotifier>(
+      builder: (context, themeNotifier, locale, child) {
         return Scaffold(
           body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
           bottomNavigationBar: BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
+            items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.shopping_bag),
-                label: 'Products',
+                label: l10n.products,
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.list),
-                label: 'Routines',
+                label: l10n.routines,
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_month),
+                label: l10n.calendar,
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.settings),
-                label: 'Settings',
+                label: l10n.settings,
               ),
             ],
             currentIndex: _selectedIndex,

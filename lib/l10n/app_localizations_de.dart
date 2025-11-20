@@ -15,22 +15,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get routines => 'Routinen';
 
   @override
-  String get add => 'Add';
+  String get language => 'Sprache';
+
+  @override
+  String get selectLanguage => 'Sprache auswählen';
+
+  @override
+  String get english => 'Englisch';
+
+  @override
+  String get german => 'Deutsch';
+
+  @override
+  String get add => 'Hinzufügen';
 
   @override
   String get addProduct => 'Produkt hinzufügen';
 
   @override
-  String get addNewRoutine => 'Add New Routine';
+  String get addNewRoutine => 'Neue Routine hinzufügen';
 
   @override
-  String get addProductsPrompt => '1. Start by adding some products';
+  String get addProductsPrompt => '1. Fügen Sie zunächst einige Produkte hinzu';
 
   @override
-  String get addRoutinePrompt => '2. And then create a routine';
+  String get addRoutinePrompt => '2. Und dann erstellen Sie eine Routine';
 
   @override
-  String get all => 'All';
+  String get all => 'Alle';
 
   @override
   String get brand => 'Marke';
@@ -42,13 +54,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cancel => 'Abbrechen';
 
   @override
-  String get colorScheme => 'Color Scheme';
+  String get colorScheme => 'Farbschema';
 
   @override
-  String get contactUs => 'Contact Us';
+  String get contactUs => 'Kontaktiere uns';
 
   @override
-  String get darkMode => 'Dark Mode';
+  String get darkMode => 'Dunkelmodus';
 
   @override
   String get delete => 'Löschen';
@@ -66,7 +78,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deleteRoutineConfirmation => 'Sind Sie sicher, dass Sie diese Routine löschen möchten?';
 
   @override
-  String get edit => 'Edit';
+  String get edit => 'Bearbeiten';
 
   @override
   String get editProduct => 'Produkt bearbeiten';
@@ -75,7 +87,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editRoutine => 'Routine bearbeiten';
 
   @override
-  String get enterName => 'Enter a name';
+  String get enterName => 'Geben Sie einen Namen ein';
 
   @override
   String get expiryPeriod => 'Haltbarkeit nach Öffnung';
@@ -84,7 +96,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get feedback => 'Feedback';
 
   @override
-  String get fontSize => 'Font Size';
+  String get fontSize => 'Schriftgröße';
 
   @override
   String get frequency => 'Häufigkeit';
@@ -93,46 +105,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get information => 'Information';
 
   @override
-  String get myProducts => 'My Products';
+  String get myProducts => 'Meine Produkte';
 
   @override
-  String get myRoutines => 'My Routines';
+  String get myRoutines => 'Meine Routinen';
 
   @override
   String get name => 'Name';
 
   @override
-  String get no => 'No';
+  String get no => 'Nein';
 
   @override
   String get notes => 'Notizen';
 
   @override
-  String get noRoutinesForDay => 'No routines scheduled for this day.';
+  String get noRoutinesForDay => 'Für diesen Tag sind keine Routinen geplant.';
 
   @override
   String get openingDate => 'Öffnungsdatum';
 
   @override
-  String get otherApps => 'Other apps';
+  String get otherApps => 'Andere Apps';
 
   @override
-  String get ourWebsite => 'Our website';
+  String get ourWebsite => 'Unsere Internetseite';
 
   @override
-  String get personalization => 'Personalization';
+  String get personalization => 'Personalisierung';
 
   @override
   String get pleaseEnterName => 'Bitte geben Sie einen Namen ein';
 
   @override
-  String get pleaseEnterRoutineName => 'Please enter a routine name';
+  String get pleaseEnterRoutineName => 'Bitte geben Sie einen Routinennamen ein';
 
   @override
   String get price => 'Preis';
 
   @override
-  String get privacyPolicy => 'Privacy Policy';
+  String get privacyPolicy => 'Datenschutz-Bestimmungen';
 
   @override
   String get productName => 'Produktname';
@@ -141,37 +153,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get purchaseDate => 'Kaufdatum';
 
   @override
-  String get rateApp => 'Rate this app';
+  String get rateApp => 'Bewerten Sie diese App';
 
   @override
   String get routineName => 'Routinenname';
 
   @override
-  String get routineSavedLocally => 'Routine saved locally!';
+  String get routineSavedLocally => 'Routine lokal gespeichert!';
 
   @override
-  String get routineSavedSuccess => 'Routine saved successfully!';
+  String get routineSavedSuccess => 'Routine erfolgreich gespeichert!';
 
   @override
-  String get routineDeletedSuccess => 'Routine deleted successfully!';
+  String get routineDeletedSuccess => 'Routine erfolgreich gelöscht!';
 
   @override
-  String get errorSavingRoutine => 'Error saving routine';
+  String get errorSavingRoutine => 'Fehler beim Speichern der Routine';
 
   @override
-  String get errorDeletingRoutine => 'Error deleting routine';
+  String get errorDeletingRoutine => 'Fehler beim Löschen der Routine';
 
   @override
-  String get routineUpdatedLocally => 'Routine updated locally!';
+  String get routineUpdatedLocally => 'Routine lokal aktualisiert!';
 
   @override
   String get save => 'Speichern';
 
   @override
-  String get saveRoutine => 'Save Routine';
+  String get saveRoutine => 'Routine speichern';
 
   @override
-  String get selectDayPrompt => 'Select a day to see upcoming routines.';
+  String get selectDayPrompt => 'Wählen Sie einen Tag aus, um bevorstehende Routinen anzuzeigen.';
 
   @override
   String get selectProducts => 'Produkte auswählen';
@@ -183,13 +195,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings => 'Einstellungen';
 
   @override
-  String get signInPrompt => 'If you want to save your data across devices, please sign in with Google';
+  String get signInPrompt => 'Wenn Sie Ihre Daten geräteübergreifend speichern möchten, melden Sie sich bitte mit Google an';
 
   @override
-  String get signInWithGoogle => 'Sign in with Google';
+  String get signInWithGoogle => 'Mit Google anmelden';
 
   @override
-  String get termsOfService => 'Terms of Service';
+  String get termsOfService => 'Nutzungsbedingungen';
 
   @override
   String get type => 'Art';
@@ -198,20 +210,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get update => 'Aktualisieren';
 
   @override
-  String get updateRoutine => 'Update Routine';
+  String get updateRoutine => 'Routine aktualisieren';
 
   @override
-  String get userData => 'User data';
+  String get userData => 'Benutzerdaten';
 
   @override
-  String get yes => 'Yes';
+  String get yes => 'Ja';
 
   @override
-  String get error => 'Error';
+  String get error => 'Fehler';
 
   @override
-  String get errorFetchingLocalProducts => 'Error fetching local products';
+  String get errorFetchingLocalProducts => 'Fehler beim Abrufen lokaler Produkte';
 
   @override
-  String get errorFetchingProducts => 'Error fetching products';
+  String get errorFetchingProducts => 'Fehler beim Abrufen von Produkten';
 }
