@@ -71,5 +71,6 @@
   "yes": "Yes",
   "error": "Error",
   "errorFetchingLocalProducts": "Error fetching local products",
-  "errorFetchingProducts": "Error fetching products"
+  "errorFetchingProducts": "Error fetching products",
+  "months": "Months"
 }

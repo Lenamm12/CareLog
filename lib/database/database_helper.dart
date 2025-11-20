@@ -26,7 +26,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'carelog_app.db');
-    return await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 4, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -52,7 +52,7 @@ class DatabaseHelper {
         frequency TEXT,
         productIds TEXT,
         notes TEXT,
-        lastDone INTEGER
+        completedDates TEXT
       )
     ''');
   }
@@ -60,6 +60,28 @@ class DatabaseHelper {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE routines ADD COLUMN lastDone INTEGER');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE routines ADD COLUMN completedDates TEXT');
+    }
+    if (oldVersion < 4) {
+      // To remove a column, we have to create a new table, copy the data, and then drop the old table.
+      await db.execute('''
+          CREATE TABLE routines_new(
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            frequency TEXT,
+            productIds TEXT,
+            notes TEXT,
+            completedDates TEXT
+          )
+      ''');
+      await db.execute('''
+          INSERT INTO routines_new(id, name, frequency, productIds, notes, completedDates)
+          SELECT id, name, frequency, productIds, notes, completedDates FROM routines
+      ''');
+      await db.execute('DROP TABLE routines');
+      await db.execute('ALTER TABLE routines_new RENAME TO routines');
     }
   }
 
@@ -97,9 +119,17 @@ class DatabaseHelper {
 
   Future<int> insertRoutine(Routine routine) async {
     final db = await database;
+    final Map<String, dynamic> row = {
+      'id': routine.id,
+      'name': routine.name,
+      'frequency': routine.frequency,
+      'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
+      'notes': routine.notes,
+      'completedDates': jsonEncode(routine.completedDates.map((d) => d.toIso8601String()).toList()),
+    };
     return await db.insert(
       'routines',
-      routine.toMap(),
+      row,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -129,9 +159,17 @@ class DatabaseHelper {
 
   Future<int> updateRoutine(Routine routine) async {
     final db = await database;
+    final Map<String, dynamic> row = {
+      'id': routine.id,
+      'name': routine.name,
+      'frequency': routine.frequency,
+      'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
+      'notes': routine.notes,
+      'completedDates': jsonEncode(routine.completedDates.map((d) => d.toIso8601String()).toList()),
+    };
     return await db.update(
       'routines',
-      routine.toMap(),
+      row,
       where: 'id = ?',
       whereArgs: [routine.id],
     );

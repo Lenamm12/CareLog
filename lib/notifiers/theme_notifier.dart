@@ -1,7 +1,8 @@
+import 'package:carelog/services/settings_service.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeNotifier with ChangeNotifier {
+  final SettingsService _settingsService = SettingsService();
   double _fontSize = 16.0;
   String _colorScheme = 'Pink';
   bool _isDarkMode = false;
@@ -10,7 +11,9 @@ class ThemeNotifier with ChangeNotifier {
   String get colorScheme => _colorScheme;
   bool get isDarkMode => _isDarkMode;
 
-  ThemeNotifier();
+  ThemeNotifier() {
+    loadTheme();
+  }
 
   ThemeData get currentTheme {
     ThemeData baseTheme = _isDarkMode ? ThemeData.dark() : ThemeData.light();
@@ -47,27 +50,27 @@ class ThemeNotifier with ChangeNotifier {
       ),
       buttonTheme: baseTheme.buttonTheme.copyWith(buttonColor: primaryColor),
       textTheme: newTextTheme,
-      colorScheme:
-          baseTheme.colorScheme.copyWith(primary: primaryColor, secondary: secondaryColor),
+      colorScheme: baseTheme.colorScheme
+          .copyWith(primary: primaryColor, secondary: secondaryColor),
     );
   }
 
   void setFontSize(double fontSize) async {
     _fontSize = fontSize;
     notifyListeners();
-    _saveTheme();
+    await _settingsService.saveFontSize(fontSize);
   }
 
   void setColorScheme(String colorScheme) async {
     _colorScheme = colorScheme;
     notifyListeners();
-    _saveTheme();
+    await _settingsService.saveColorScheme(colorScheme);
   }
 
   void setDarkMode(bool isDarkMode) async {
     _isDarkMode = isDarkMode;
     notifyListeners();
-    _saveTheme();
+    await _settingsService.saveTheme(isDarkMode);
   }
 
   Color _getColor() {
@@ -126,18 +129,10 @@ class ThemeNotifier with ChangeNotifier {
     }
   }
 
-  _saveTheme() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setDouble('fontSize', _fontSize);
-    prefs.setString('colorScheme', _colorScheme);
-    prefs.setBool('isDarkMode', _isDarkMode);
-  }
-
   Future<void> loadTheme() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    _fontSize = prefs.getDouble('fontSize') ?? 16.0;
-    _colorScheme = prefs.getString('colorScheme') ?? 'Pink';
-    _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    _isDarkMode = await _settingsService.loadTheme();
+    _colorScheme = await _settingsService.loadColorScheme();
+    _fontSize = await _settingsService.loadFontSize();
     notifyListeners();
   }
 }

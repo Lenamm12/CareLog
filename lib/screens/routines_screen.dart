@@ -81,9 +81,24 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     );
   }
 
-  void _updateRoutineLastDone(Routine routine, DateTime? lastDone) async {
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  void _updateRoutineCompletedDates(Routine routine, bool isDone) async {
     final user = _auth.currentUser;
-    routine.lastDone = lastDone;
+    final today = DateTime.now();
+
+    if (isDone) {
+      if (!routine.completedDates.any((date) => isSameDay(date, today))) {
+        routine.completedDates.add(today);
+      }
+    } else {
+      routine.completedDates.removeWhere((date) => isSameDay(date, today));
+    }
+
     if (user == null) {
       await DatabaseHelper.instance.updateRoutine(routine);
       _loadRoutines();
@@ -93,16 +108,12 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           .doc(user.uid)
           .collection('routines')
           .doc(routine.id)
-          .update({'lastDone': lastDone});
-      // We need to reload the routines to see the change
+          .update({
+        'completedDates':
+            routine.completedDates.map((d) => d.toIso8601String()).toList()
+      });
       _loadRoutines();
     }
-  }
-
-  bool isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
   }
 
   @override
@@ -120,15 +131,14 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                   itemCount: _routines.length,
                   itemBuilder: (context, index) {
                     final routine = _routines[index];
-                    final isDone = routine.lastDone != null &&
-                        isSameDay(routine.lastDone!, DateTime.now());
+                    final isDone = routine.completedDates
+                        .any((date) => isSameDay(date, DateTime.now()));
                     return ListTile(
                       title: Text(routine.name),
                       trailing: Checkbox(
                         value: isDone,
                         onChanged: (value) {
-                          _updateRoutineLastDone(
-                              routine, value! ? DateTime.now() : null);
+                          _updateRoutineCompletedDates(routine, value!);
                         },
                       ),
                       onTap: () => _navigateToAddRoutine(routine),
@@ -136,7 +146,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                   },
                 ),
       floatingActionButton: FloatingActionButton(
-        heroTag: 'addRoutine',
+        heroTag: 'addRoutine', 
         onPressed: () => _navigateToAddRoutine(),
         child: const Icon(Icons.add),
       ),

@@ -80,5 +80,6 @@
   "yes": "Ja",
   "error": "Fehler",
   "errorFetchingLocalProducts": "Fehler beim Abrufen lokaler Produkte",
-  "errorFetchingProducts": "Fehler beim Abrufen von Produkten"
+  "errorFetchingProducts": "Fehler beim Abrufen von Produkten",
+  "months": "Monate"
 }

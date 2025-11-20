@@ -31,7 +31,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime _purchaseDate = DateTime.now();
   String _price = '';
   DateTime _openingDate = DateTime.now();
-  String _expiryPeriod = '6 months';
+  String _expiryPeriod = '6 ';
   String _notes = '';
   File? _image;
 
@@ -40,12 +40,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
 
-  final List<String> _expiryPeriods = [
-    '6 months',
-    '12 months',
-    '24 months',
-    '36 months',
-  ];
+  final List<String> _expiryPeriods = ['6 ', '12 ', '24 ', '36 '];
 
   @override
   void initState() {
@@ -58,7 +53,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _purchaseDate = widget.product!.purchaseDate ?? DateTime.now();
       _price = widget.product!.price?.toString().replaceAll('.', ',') ?? '';
       _openingDate = widget.product!.openingDate ?? DateTime.now();
-      _expiryPeriod = widget.product!.expiryPeriod ?? '6 months';
+      _expiryPeriod = widget.product!.expiryPeriod ?? '6 ';
       _notes = widget.product!.notes ?? '';
       if (widget.product!.imagePath != null) {
         _image = File(widget.product!.imagePath!);
@@ -116,7 +111,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final user = _auth.currentUser;
       final imagePath = _image?.path;
 
-      final format = NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode);
+      final format = NumberFormat.decimalPattern(
+        Localizations.localeOf(context).languageCode,
+      );
       final price = format.parse(_price).toDouble();
 
       if (user == null) {
@@ -257,7 +254,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final format = NumberFormat.currency(locale: Localizations.localeOf(context).languageCode);
+    final format = NumberFormat.currency(
+      locale: Localizations.localeOf(context).languageCode,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? l10n.editProduct : l10n.addProduct),
@@ -313,8 +312,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       );
                     });
                   },
-                  displayStringForOption: (Product option) =>
-                      '${option.name} - ${option.brand} (${option.type})',
+                  displayStringForOption:
+                      (Product option) =>
+                          '${option.name} - ${option.brand} (${option.type})',
                   onSelected: (Product selection) {
                     setState(() {
                       _name = selection.name;
@@ -419,7 +419,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     _expiryPeriods.map((String period) {
                       return DropdownMenuItem<String>(
                         value: period,
-                        child: Text(period),
+                        child: Text(period + l10n.months),
                       );
                     }).toList(),
                 onChanged: (String? newValue) {

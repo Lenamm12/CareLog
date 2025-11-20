@@ -1,10 +1,10 @@
+import 'package:carelog/notifiers/locale_notifier.dart';
 import 'package:carelog/screens/calender_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
-import 'notifiers/locale_notifier.dart';
 import 'screens/products_screen.dart';
 import 'screens/routines_screen.dart';
 import 'screens/settings_screen.dart';
@@ -13,14 +13,18 @@ import 'notifiers/theme_notifier.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
   final themeNotifier = ThemeNotifier();
   await themeNotifier.loadTheme();
+
+  final localeNotifier = LocaleNotifier();
+  await localeNotifier.loadLocale();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
-        ChangeNotifierProvider(create: (_) => LocaleNotifier()),
+        ChangeNotifierProvider.value(value: themeNotifier),
+        ChangeNotifierProvider.value(value: localeNotifier),
       ],
       child: const MyApp(),
     ),
@@ -32,9 +36,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
+    return Consumer2<ThemeNotifier, LocaleNotifier>(
+      builder: (context, themeNotifier, localeNotifier, child) {
         return MaterialApp(
+          locale: localeNotifier.locale,
           title: 'Carelog',
           theme: themeNotifier.currentTheme,
           home: const MainScreen(),

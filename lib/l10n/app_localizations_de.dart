@@ -226,4 +226,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get errorFetchingProducts => 'Fehler beim Abrufen von Produkten';
+
+  @override
+  String get months => 'Monate';
 }

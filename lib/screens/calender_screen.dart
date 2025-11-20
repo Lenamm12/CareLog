@@ -60,7 +60,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       // Get the last date of the calendar view
       final lastDay = DateTime.utc(2030, 12, 31);
 
-      for (var day = firstDay; day.isBefore(lastDay); day = day.add(const Duration(days: 1))) {
+      for (var day = firstDay;
+          day.isBefore(lastDay);
+          day = day.add(const Duration(days: 1))) {
         if (_shouldShowRoutineOnDay(routine, day)) {
           final date = DateTime.utc(day.year, day.month, day.day);
           if (newRoutinesByDay[date] == null) {
@@ -85,6 +87,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return day.day == 1; // Or any other logic
       default:
         return false;
+    }
+  }
+
+  Future<void> _toggleRoutineCompletion(Routine routine, DateTime day) async {
+    final normalizedDay = DateTime.utc(day.year, day.month, day.day);
+    setState(() {
+      if (routine.completedDates.contains(normalizedDay)) {
+        routine.completedDates.remove(normalizedDay);
+      } else {
+        routine.completedDates.add(normalizedDay);
+      }
+    });
+
+    if (currentUser == null) {
+      await DatabaseHelper.instance.updateRoutine(routine);
+    } else {
+      await _firestore
+          .collection('users')
+          .doc(currentUser!.uid)
+          .collection('routines')
+          .doc(routine.id)
+          .update({
+        'completedDates':
+            routine.completedDates.map((d) => d.toIso8601String()).toList()
+      });
     }
   }
 
@@ -122,7 +149,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               _focusedDay = focusedDay;
             },
             eventLoader: (day) {
-              return _routinesByDay[DateTime.utc(day.year, day.month, day.day)] ?? [];
+              return _routinesByDay[DateTime.utc(day.year, day.month, day.day)] ??
+                  [];
             },
           ),
           const SizedBox(height: 8.0),
@@ -140,7 +168,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    final selectedDayRoutines = _routinesByDay[DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)] ?? [];
+    final selectedDayRoutines = _routinesByDay[
+            DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)] ??
+        [];
 
     if (selectedDayRoutines.isEmpty) {
       return Center(
@@ -152,8 +182,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
       itemCount: selectedDayRoutines.length,
       itemBuilder: (context, index) {
         final routine = selectedDayRoutines[index];
-        return ListTile(
-          title: Text(routine.name),
+        final isCompleted = routine.completedDates
+            .contains(DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day));
+        return CheckboxListTile(
+          title: Text(
+            routine.name,
+            style: TextStyle(
+              decoration: isCompleted ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          value: isCompleted,
+          onChanged: (bool? value) {
+            _toggleRoutineCompletion(routine, _selectedDay!);
+          },
         );
       },
     );
