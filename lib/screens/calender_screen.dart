@@ -80,11 +80,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _shouldShowRoutineOnDay(Routine routine, DateTime day) {
     switch (routine.frequency) {
       case 'Daily':
+      case 'DailyMorning':
+      case 'DailyEvening':
         return true;
       case 'Weekly':
-        return day.weekday == DateTime.monday; // Or any other logic
+        return day.weekday == routine.weekDay;
       case 'Monthly':
-        return day.day == 1; // Or any other logic
+        return day.day == routine.dayOfMonth;
       default:
         return false;
     }

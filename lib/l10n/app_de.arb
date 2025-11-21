@@ -32,6 +32,8 @@
   "save": "Speichern",
   "update": "Aktualisieren",
   "daily": "Täglich",
+  "dailyMorning": "Täglich (Morgens)",
+  "dailyEvening": "Täglich (Abends)",
   "weekly": "Wöchentlich",
   "monthly": "Monatlich",
   "custom": "Benutzerdefiniert",
@@ -81,5 +83,12 @@
   "error": "Fehler",
   "errorFetchingLocalProducts": "Fehler beim Abrufen lokaler Produkte",
   "errorFetchingProducts": "Fehler beim Abrufen von Produkten",
-  "months": "Monate"
+  "months": "Monate",
+  "monday": "Montag",
+  "tuesday": "Dienstag",
+  "wednesday": "Mittwoch",
+  "thursday": "Donnerstag",
+  "friday": "Freitag",
+  "saturday": "Samstag",
+  "sunday": "Sonntag"
 }

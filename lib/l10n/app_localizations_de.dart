@@ -228,5 +228,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorFetchingProducts => 'Fehler beim Abrufen von Produkten';
 
   @override
+  String get daily => 'Täglich';
+
+  @override
+  String get dailyMorning => 'Täglich (Morgens)';
+
+  @override
+  String get dailyEvening => 'Täglich (Abends)';
+
+  @override
+  String get weekly => 'Wöchentlich';
+
+  @override
+  String get monthly => 'Monatlich';
+
+  @override
   String get months => 'Monate';
+
+  @override
+  String get monday => 'Montag';
+
+  @override
+  String get tuesday => 'Dienstag';
+
+  @override
+  String get wednesday => 'Mittwoch';
+
+  @override
+  String get thursday => 'Donnerstag';
+
+  @override
+  String get friday => 'Freitag';
+
+  @override
+  String get saturday => 'Samstag';
+
+  @override
+  String get sunday => 'Sonntag';
+
+  @override
+  String get morning => 'Morning';
+
+  @override
+  String get evening => 'Evening';
 }
