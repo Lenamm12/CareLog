@@ -8,6 +8,7 @@ class Routine {
   String name;
   List<Product>? products;
   String frequency;
+  String? customFrequency;
   String? notes;
   List<DateTime> completedDates;
 
@@ -16,6 +17,7 @@ class Routine {
     required this.name,
     this.products,
     required this.frequency,
+    this.customFrequency,
     this.notes,
     List<DateTime>? completedDates,
   })  : id = id ?? const Uuid().v4(),
@@ -42,6 +44,7 @@ class Routine {
           )
           .toList(),
       frequency: data['frequency'] ?? 'Daily',
+      customFrequency: data['customFrequency'],
       notes: data['notes'],
       completedDates: (data['completedDates'] as List<dynamic>?)
           ?.map((date) => DateTime.parse(date as String))
@@ -63,6 +66,7 @@ class Routine {
       name: map['name'] as String,
       products: products,
       frequency: map['frequency'] as String,
+      customFrequency: map['customFrequency'] as String?,
       notes: map['notes'] as String?,
       completedDates: dates ?? [],
     );
@@ -74,6 +78,7 @@ class Routine {
       'name': name,
       'productIds': products?.map((p) => p.id).toList() ?? [],
       'frequency': frequency,
+      'customFrequency': customFrequency,
       'notes': notes,
       'completedDates': completedDates.map((d) => d.toIso8601String()).toList(),
     };
