@@ -86,5 +86,7 @@
   "saturday": "Saturday",
   "sunday": "Sunday",
   "morning": "Morning",
-  "evening": "Evening"
+  "evening": "Evening",
+  "customFrequency": "Custom",
+  "pleaseEnterCustomFrequency": "Please enter a frequency in days"
 }

@@ -271,4 +271,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get evening => 'Evening';
+
+  @override
+  String get customFrequency => 'Benutzerdefiniert';
+
+  @override
+  String get pleaseEnterCustomFrequency => 'Bitte geben Sie eine Häufigkeit in Tagen ein';
 }

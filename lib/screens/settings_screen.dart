@@ -96,16 +96,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LanguageSelectionScreen(),
-                ),
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.language),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LanguageSelectionScreen(),
+                  ),
+                );
+              },
+              child: Text(AppLocalizations.of(context)!.language),
+            ),
           ),
           const SizedBox(height: 20),
           Text(

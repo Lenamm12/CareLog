@@ -32,6 +32,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         name: widget.routine!.name,
         products: widget.routine!.products ?? [],
         frequency: widget.routine!.frequency,
+        customFrequency: widget.routine!.customFrequency,
         notes: widget.routine!.notes,
       );
     } else {
@@ -49,6 +50,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     return widget.routine == null ? l10n.addNewRoutine : l10n.editRoutine;
   }
 
+  final List<String> _frequencies = ['Daily', 'Weekly', 'Monthly', 'Custom'];
+
   void _saveRoutine() async {
     final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
@@ -62,6 +65,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         name: currentRoutine.name,
         products: currentRoutine.products,
         frequency: currentRoutine.frequency,
+        customFrequency: currentRoutine.customFrequency,
         notes: currentRoutine.notes,
       );
 
@@ -171,8 +175,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     final selectedProducts = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ProductSelectionScreen(initialSelectedProducts: currentRoutine.products ?? []),
+        builder:
+            (context) => ProductSelectionScreen(
+              initialSelectedProducts: currentRoutine.products ?? [],
+            ),
       ),
     );
 
@@ -186,22 +192,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final Map<String, String> frequencyMap = {
-      'Daily': l10n.daily,
-      'DailyMorning': l10n.dailyMorning,
-      'DailyEvening': l10n.dailyEvening,
-      'Weekly': l10n.weekly,
-      'Monthly': l10n.monthly,
-    };
-    final Map<int, String> weekdays = {
-      1 : l10n.monday,
-      2: l10n.tuesday,
-      3: l10n.wednesday,
-      4: l10n.thursday,
-      5: l10n.friday,
-      6: l10n.saturday,
-      7: l10n.sunday
-    };
     return Scaffold(
       appBar: AppBar(
         title: Text(_appBarTitle(l10n)),
@@ -260,9 +250,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                       itemBuilder: (context, index) {
                         final product = currentRoutine.products![index];
                         return ListTile(
-                          leading: product.imagePath != null
-                              ? Image.network(product.imagePath!)
-                              : null, // Display image if available
+                          leading:
+                              product.imagePath != null
+                                  ? Image.network(product.imagePath!)
+                                  : null, // Display image if available
                           title: Text(product.name),
                         );
                       },
@@ -272,12 +263,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               DropdownButtonFormField<String>(
                 value: currentRoutine.frequency, // Pre-populate for editing
                 decoration: InputDecoration(labelText: l10n.frequency),
-                items: frequencyMap.entries.map((entry) {
-                  return DropdownMenuItem<String>(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  );
-                }).toList(),
+                items:
+                    _frequencies.map((String frequency) {
+                      return DropdownMenuItem<String>(
+                        value: frequency,
+                        child: Text(frequency),
+                      );
+                    }).toList(),
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     setState(() {
@@ -289,35 +281,23 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   currentRoutine.frequency = value!;
                 },
               ),
-              const SizedBox(height: 16),
-              if(currentRoutine.frequency == 'Weekly')
-              DropdownButtonFormField(items: weekdays.entries.map((weekday){
-                return DropdownMenuItem<int>(
-                  value: weekday.key,
-                  child: Text(weekday.value.toString()),
-                );
-              }).toList(), onChanged: (int? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    currentRoutine.weekDay = newValue;
-                  });
-                }
-              }),
-              const SizedBox(height: 16),
-              if(currentRoutine.frequency == 'Monthly')
-              DropdownButtonFormField(items:
-              List.generate(31, (index) => (index + 1)).map((day){
-                return DropdownMenuItem<int>(
-                  value: day,
-                  child: Text(day.toString()),
-                );
-              }).toList(), onChanged: (int? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    currentRoutine.dayOfMonth = newValue;
-                  });
-                }
-              }),
+              if (currentRoutine.frequency == 'Custom')
+                TextFormField(
+                  initialValue:
+                      currentRoutine
+                          .customFrequency, // Pre-populate for editing
+                  decoration: InputDecoration(labelText: l10n.customFrequency),
+                  validator: (value) {
+                    if (currentRoutine.frequency == 'Custom' &&
+                        (value == null || value.isEmpty)) {
+                      return l10n.pleaseEnterCustomFrequency;
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    currentRoutine.customFrequency = value!;
+                  },
+                ),
               TextFormField(
                 initialValue: currentRoutine.notes, // Pre-populate for editing
                 decoration: InputDecoration(labelText: l10n.notes),

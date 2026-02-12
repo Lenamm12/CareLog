@@ -127,6 +127,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
+            startingDayOfWeek: StartingDayOfWeek.monday,
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
             selectedDayPredicate: (day) {

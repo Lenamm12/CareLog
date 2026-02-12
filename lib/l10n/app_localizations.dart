@@ -622,6 +622,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Evening'**
   String get evening;
+
+  /// No description provided for @customFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customFrequency;
+
+  /// No description provided for @pleaseEnterCustomFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a frequency in days'**
+  String get pleaseEnterCustomFrequency;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -36,7 +36,6 @@
   "dailyEvening": "Täglich (Abends)",
   "weekly": "Wöchentlich",
   "monthly": "Monatlich",
-  "custom": "Benutzerdefiniert",
   "pleaseEnterName": "Bitte geben Sie einen Namen ein",
   "name": "Name",
   "deleteProduct": "Produkt löschen",
@@ -50,7 +49,6 @@
   "all": "Alle",
   "colorScheme": "Farbschema",
   "contactUs": "Kontaktiere uns",
-  "darkMode": "Dunkelmodus",
   "edit": "Bearbeiten",
   "enterName": "Geben Sie einen Namen ein",
   "feedback": "Feedback",
@@ -90,5 +88,9 @@
   "thursday": "Donnerstag",
   "friday": "Freitag",
   "saturday": "Samstag",
-  "sunday": "Sonntag"
+  "sunday": "Sonntag",
+  "customFrequency": "Benutzerdefiniert",
+  "pleaseEnterCustomFrequency": "Bitte geben Sie eine Häufigkeit in Tagen ein",
+  "morning": "Morgen",
+  "evening": "Abend"
 }
