@@ -1,7 +1,7 @@
 {
   "products": "Products",
   "routines": "Routines",
-  "language": "Langauge",
+  "language": "Language",
   "selectLanguage": "Select Language",
   "english": "English",
   "german": "German",
@@ -72,5 +72,19 @@
   "error": "Error",
   "errorFetchingLocalProducts": "Error fetching local products",
   "errorFetchingProducts": "Error fetching products",
-  "months": "Months"
+  "daily": "Daily",
+  "dailyMorning": "Daily (Morning)",
+  "dailyEvening": "Daily (Evening)",
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "months": "Months",
+  "monday": "Monday",
+  "tuesday": "Tuesday",
+  "wednesday": "Wednesday",
+  "thursday": "Thursday",
+  "friday": "Friday",
+  "saturday": "Saturday",
+  "sunday": "Sunday",
+  "morning": "Morning",
+  "evening": "Evening"
 }

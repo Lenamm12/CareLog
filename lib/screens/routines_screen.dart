@@ -134,7 +134,12 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     final isDone = routine.completedDates
                         .any((date) => isSameDay(date, DateTime.now()));
                     return ListTile(
-                      title: Text(routine.name),
+                      title: Text(
+                        routine.name,
+                        style: TextStyle(
+                          decoration: isDone ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
                       trailing: Checkbox(
                         value: isDone,
                         onChanged: (value) {

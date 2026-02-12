@@ -49,8 +49,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     return widget.routine == null ? l10n.addNewRoutine : l10n.editRoutine;
   }
 
-  final List<String> _frequencies = ['Daily', 'Weekly', 'Monthly', 'Custom'];
-
   void _saveRoutine() async {
     final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
@@ -188,6 +186,22 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final Map<String, String> frequencyMap = {
+      'Daily': l10n.daily,
+      'DailyMorning': l10n.dailyMorning,
+      'DailyEvening': l10n.dailyEvening,
+      'Weekly': l10n.weekly,
+      'Monthly': l10n.monthly,
+    };
+    final Map<int, String> weekdays = {
+      1 : l10n.monday,
+      2: l10n.tuesday,
+      3: l10n.wednesday,
+      4: l10n.thursday,
+      5: l10n.friday,
+      6: l10n.saturday,
+      7: l10n.sunday
+    };
     return Scaffold(
       appBar: AppBar(
         title: Text(_appBarTitle(l10n)),
@@ -258,10 +272,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               DropdownButtonFormField<String>(
                 value: currentRoutine.frequency, // Pre-populate for editing
                 decoration: InputDecoration(labelText: l10n.frequency),
-                items: _frequencies.map((String frequency) {
+                items: frequencyMap.entries.map((entry) {
                   return DropdownMenuItem<String>(
-                    value: frequency,
-                    child: Text(frequency),
+                    value: entry.key,
+                    child: Text(entry.value),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
@@ -275,6 +289,35 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   currentRoutine.frequency = value!;
                 },
               ),
+              const SizedBox(height: 16),
+              if(currentRoutine.frequency == 'Weekly')
+              DropdownButtonFormField(items: weekdays.entries.map((weekday){
+                return DropdownMenuItem<int>(
+                  value: weekday.key,
+                  child: Text(weekday.value.toString()),
+                );
+              }).toList(), onChanged: (int? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    currentRoutine.weekDay = newValue;
+                  });
+                }
+              }),
+              const SizedBox(height: 16),
+              if(currentRoutine.frequency == 'Monthly')
+              DropdownButtonFormField(items:
+              List.generate(31, (index) => (index + 1)).map((day){
+                return DropdownMenuItem<int>(
+                  value: day,
+                  child: Text(day.toString()),
+                );
+              }).toList(), onChanged: (int? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    currentRoutine.dayOfMonth = newValue;
+                  });
+                }
+              }),
               TextFormField(
                 initialValue: currentRoutine.notes, // Pre-populate for editing
                 decoration: InputDecoration(labelText: l10n.notes),

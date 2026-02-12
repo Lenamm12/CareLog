@@ -11,6 +11,9 @@ class Routine {
   String? customFrequency;
   String? notes;
   List<DateTime> completedDates;
+  int weekDay = 0;
+  int dayOfMonth = 0;
+
 
   Routine({
     String? id,
@@ -20,6 +23,8 @@ class Routine {
     this.customFrequency,
     this.notes,
     List<DateTime>? completedDates,
+    int? weekDay,
+    int? dayOfMonth,
   })  : id = id ?? const Uuid().v4(),
         completedDates = completedDates ?? [];
 
@@ -69,6 +74,8 @@ class Routine {
       customFrequency: map['customFrequency'] as String?,
       notes: map['notes'] as String?,
       completedDates: dates ?? [],
+      weekDay: map['weekDay'] ,
+      dayOfMonth: map['dayOfMonth'] ,
     );
   }
 
@@ -81,6 +88,8 @@ class Routine {
       'customFrequency': customFrequency,
       'notes': notes,
       'completedDates': completedDates.map((d) => d.toIso8601String()).toList(),
+      'weekDay': weekDay,
+      'dayOfMonth': dayOfMonth,
     };
   }
 }

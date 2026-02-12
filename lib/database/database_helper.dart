@@ -52,7 +52,9 @@ class DatabaseHelper {
         frequency TEXT,
         productIds TEXT,
         notes TEXT,
-        completedDates TEXT
+        completedDates TEXT,
+        weekDay INTEGER,
+        dayOfMonth INTEGER
       )
     ''');
   }
@@ -73,7 +75,9 @@ class DatabaseHelper {
             frequency TEXT,
             productIds TEXT,
             notes TEXT,
-            completedDates TEXT
+            completedDates TEXT,
+            weekDay INTEGER,
+            dayOfMonth INTEGER
           )
       ''');
       await db.execute('''
@@ -126,6 +130,8 @@ class DatabaseHelper {
       'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
       'notes': routine.notes,
       'completedDates': jsonEncode(routine.completedDates.map((d) => d.toIso8601String()).toList()),
+      'weekDay': routine.weekDay,
+      'dayOfMonth': routine.dayOfMonth,
     };
     return await db.insert(
       'routines',
@@ -166,6 +172,8 @@ class DatabaseHelper {
       'productIds': jsonEncode(routine.products?.map((p) => p.id).toList() ?? []),
       'notes': routine.notes,
       'completedDates': jsonEncode(routine.completedDates.map((d) => d.toIso8601String()).toList()),
+      'weekDay': routine.weekDay,
+      'dayOfMonth': routine.dayOfMonth,
     };
     return await db.update(
       'routines',
